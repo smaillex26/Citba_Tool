@@ -5,7 +5,6 @@
   line-height: 1.5;
   font-weight: 400;
   color: #1f2937;
-  background: #f0fdf4;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -38,8 +37,16 @@ body,
   min-height: 100%;
 }
 
+html {
+  background:
+    linear-gradient(rgba(240, 253, 244, 0.80), rgba(240, 253, 244, 0.80)),
+    url('/hero-bg.jpg') center center / cover fixed no-repeat;
+  background-color: #f0fdf4;
+}
+
 body {
   min-width: 320px;
+  background: transparent;
 }
 
 a {
@@ -100,18 +107,15 @@ select {
   gap: 12px;
 }
 
-.site-header__logo {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+.site-header__logo-img {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
 }
 
-.site-header__logo svg {
-  stroke: #ffffff;
+.site-header__brand-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .site-header__eyebrow {
@@ -284,10 +288,11 @@ select {
 .table-card,
 .stat-pill,
 .bar-chart {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--green-200);
   border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(5, 150, 105, 0.04);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+  backdrop-filter: blur(4px);
 }
 
 /* ===== INFO CARD ===== */
@@ -1077,11 +1082,14 @@ select {
   grid-template-columns: 1fr 1fr;
   gap: 40px;
   align-items: center;
-  background: var(--emerald-700);
+  background:
+    linear-gradient(135deg, rgba(5, 80, 50, 0.78) 0%, rgba(10, 60, 40, 0.65) 60%, rgba(0, 0, 0, 0.55) 100%),
+    url('/hero-bg.jpg') center center / cover no-repeat;
   border-radius: 16px;
   padding: 56px 48px;
   color: #ffffff;
   margin-bottom: 0;
+  position: relative;
 }
 
 .home-hero__text h1 {

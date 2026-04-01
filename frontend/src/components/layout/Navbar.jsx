@@ -36,17 +36,8 @@ function Navbar() {
     <header className="site-header">
       <div className="site-header__inner">
         <NavLink to="/" className="site-header__brand">
-          <div className="site-header__logo">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 8c.7-1 1-2.2 1-3.5C18 2.5 16.6 1 15 1c-1.3 0-2.4.8-2.8 2C11.8 1.3 10.3.5 8.7.8 7 1.1 5.8 2.6 6 4.3c.1 1 .6 1.9 1.2 2.7" />
-              <path d="M12 22V10" />
-              <path d="M7 14c-2 0-3.5-1-4.5-2.5 2-1 4-1 5.5.5" />
-              <path d="M17 14c2 0 3.5-1 4.5-2.5-2-1-4-1-5.5.5" />
-              <path d="M9 18c-1.5 1-3 1.5-5 1.5 1.5-1.5 2.5-3.5 3-5.5" />
-              <path d="M15 18c1.5 1 3 1.5 5 1.5-1.5-1.5-2.5-3.5-3-5.5" />
-            </svg>
-          </div>
-          <div>
+          <img src="/logo-citba.png" alt="CITBA" className="site-header__logo-img" />
+          <div className="site-header__brand-text">
             <p className="site-header__eyebrow">Outil interne</p>
             <h1 className="site-header__title">Empreinte Carbone</h1>
           </div>
