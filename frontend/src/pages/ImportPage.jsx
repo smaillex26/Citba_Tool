@@ -20,10 +20,10 @@ function ImportPage() {
   return (
     <PageContainer
       title="Import du fichier Excel"
-      description="Deposez un fichier issu de Wavesoft puis lancez le traitement pour alimenter le tableau de collecte."
+      description="Déposez un fichier issu de Wavesoft puis lancez le traitement pour alimenter le tableau de collecte."
       actions={
         status === "success" ? (
-          <Button onClick={() => navigate("/collecte")}>
+          <Button onClick={() => navigate("/donnees/collecte")}>
             Voir le tableau
           </Button>
         ) : null
@@ -39,16 +39,16 @@ function ImportPage() {
 
       <div className="info-grid">
         <article className="info-card">
-          <h3>Etape 1</h3>
-          <p>Choisir le fichier Excel exporte depuis l'ERP.</p>
+          <h3>Étape 1</h3>
+          <p>Choisir le fichier Excel exporté depuis l'ERP.</p>
         </article>
         <article className="info-card">
-          <h3>Etape 2</h3>
-          <p>Lancer le traitement pour nettoyer et convertir les donnees.</p>
+          <h3>Étape 2</h3>
+          <p>Lancer le traitement pour nettoyer et convertir les données.</p>
         </article>
         <article className="info-card">
-          <h3>Etape 3</h3>
-          <p>Consulter le tableau de collecte avec les donnees traitees.</p>
+          <h3>Étape 3</h3>
+          <p>Consulter le tableau de collecte avec les données traitées.</p>
         </article>
       </div>
     </PageContainer>

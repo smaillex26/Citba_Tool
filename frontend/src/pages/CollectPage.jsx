@@ -29,7 +29,7 @@ function CollectPage() {
   return (
     <PageContainer
       title="Tableau de collecte"
-      description="Donnees de test pour preparer l'affichage des donnees metier. La recherche, le tri et la pagination sont fonctionnels."
+      description="Données de test pour préparer l'affichage des données métier. La recherche, le tri et la pagination sont fonctionnels."
     >
       <div className="filter-bar">
         <select

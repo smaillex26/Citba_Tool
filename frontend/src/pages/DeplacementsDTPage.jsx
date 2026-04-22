@@ -39,8 +39,8 @@ function DeplacementsDTPage() {
 
   return (
     <PageContainer
-      title="Deplacements domicile-travail"
-      description="Donnees de test sur les trajets quotidiens des collaborateurs. Ces informations alimenteront le calcul carbone (scope 3)."
+      title="Déplacements domicile-travail"
+      description="Données de test sur les trajets quotidiens des collaborateurs. Ces informations alimenteront le calcul carbone (scope 3)."
     >
       <div className="summary-grid">
         {deplacementsDTStats.map((card) => (
@@ -82,7 +82,7 @@ function DeplacementsDTPage() {
           onChange={(e) => setTeletravailFilter(e.target.value)}
           className="filter-select"
         >
-          <option value="">Teletravail (tous)</option>
+          <option value="">Télétravail (tous)</option>
           {teletravailOptions.map((t) => (
             <option key={t} value={t}>{t}</option>
           ))}
@@ -107,8 +107,8 @@ function DeplacementsDTPage() {
       <DataTable columns={deplacementsDTColumns} rows={filtered} />
 
       <div className="charts-grid">
-        <BarChart title="Repartition par moyen de deplacement" items={chartByMoyen} />
-        <BarChart title="Repartition par tranche de distance" items={chartByDistance} />
+        <BarChart title="Répartition par moyen de déplacement" items={chartByMoyen} />
+        <BarChart title="Répartition par tranche de distance" items={chartByDistance} />
       </div>
     </PageContainer>
   );

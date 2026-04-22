@@ -24,7 +24,7 @@ function EnergieProcessPage() {
   const [scopeFilter,     setScopeFilter]     = useState("");
   const [categorieFilter, setCategorieFilter] = useState("");
 
-  /* Donnees filtrees */
+  /* Données filtrées */
   const filtered = useMemo(() => {
     let d = energieProcessRows;
     if (siteFilter)      d = d.filter((r) => r.site              === siteFilter);
@@ -70,7 +70,7 @@ function EnergieProcessPage() {
       }));
   }, [filtered]);
 
-  /* Tableau : ajouter colonne % recalcule sur le filtre */
+  /* Tableau : ajouter colonne % recalculée sur le filtre */
   const tableRows = useMemo(() =>
     filtered.map((r) => ({
       ...r,
@@ -85,15 +85,15 @@ function EnergieProcessPage() {
 
   return (
     <PageContainer
-      title="Energie et Process"
-      description="Consommations energetiques et process des 4 sites. Calcul des emissions (kg CO2e) par type de fluide, scope et categorie — source Base Carbone ADEME."
+      title="Énergie et Process"
+      description="Consommations énergétiques et procédés des 4 sites. Calcul des émissions (kg CO2e) par type de fluide, scope et catégorie — source Base Carbone ADEME."
     >
-      {/* Cartes resume */}
+      {/* Cartes résumé */}
       <div className="summary-grid">
-        <SummaryCard label="Total kg CO2e"  value={fmtKg(totalKgCO2e)} helper="Toutes energies confondues" accent="green"  />
-        <SummaryCard label="Scope 1"        value={fmtKg(totalScope1)}  helper="Combustion + frigorigenes"  accent="red"    />
-        <SummaryCard label="Scope 2"        value={fmtKg(totalScope2)}  helper="Electricite achetee"        accent="blue"   />
-        <SummaryCard label="Scope 3 amont"  value={fmtKg(totalScope3)}  helper="Gaz process et eau"         accent="amber"  />
+        <SummaryCard label="Total kg CO2e"  value={fmtKg(totalKgCO2e)} helper="Toutes énergies confondues" accent="green"  />
+        <SummaryCard label="Scope 1"        value={fmtKg(totalScope1)}  helper="Combustion + frigorigènes"  accent="red"    />
+        <SummaryCard label="Scope 2"        value={fmtKg(totalScope2)}  helper="Électricité réseau"         accent="blue"   />
+        <SummaryCard label="Scope 3 amont"  value={fmtKg(totalScope3)}  helper="Produits et services achetés"  accent="amber"  />
       </div>
 
       {/* Scopes visuels */}
@@ -133,7 +133,7 @@ function EnergieProcessPage() {
         </select>
 
         <select className="filter-select" value={categorieFilter} onChange={(e) => setCategorieFilter(e.target.value)}>
-          <option value="">Toutes les categories</option>
+          <option value="">Toutes les catégories</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
@@ -163,10 +163,10 @@ function EnergieProcessPage() {
 
       {/* Graphiques */}
       <div className="charts-grid">
-        <BarChart title="Emissions par site (kg CO2e)"          items={chartBySite}    />
-        <BarChart title="Emissions par scope (kg CO2e)"         items={chartByScope}   />
+        <BarChart title="Émissions par site (kg CO2e)"          items={chartBySite}    />
+        <BarChart title="Émissions par scope (kg CO2e)"         items={chartByScope}   />
       </div>
-      <BarChart title="Top 10 — Emissions par type d'energie (kg CO2e)" items={chartByEnergie} />
+      <BarChart title="Top 10 — Émissions par type d'énergie (kg CO2e)" items={chartByEnergie} />
     </PageContainer>
   );
 }

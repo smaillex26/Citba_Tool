@@ -5,7 +5,7 @@ import { INITIAL_AFFAIRES } from "../data/affairesData.js";
 
 const STATUT_COLOR = {
   "En cours": { bg: "#dcfce7", text: "#15803d" },
-  "Termine":  { bg: "#f1f5f9", text: "#64748b" },
+  "Terminé":  { bg: "#f1f5f9", text: "#64748b" },
 };
 
 function AffairesPage() {
@@ -23,12 +23,12 @@ function AffairesPage() {
     : affaires;
 
   const enCours = affaires.filter((a) => a.statut === "En cours").length;
-  const termines = affaires.filter((a) => a.statut === "Termine").length;
+  const termines = affaires.filter((a) => a.statut === "Terminé").length;
 
   return (
     <PageContainer
       title="Tableau de bord — Affaires"
-      description="Retrouvez toutes vos affaires classees par numero. Supprimez une affaire une fois son traitement termine."
+      description="Retrouvez toutes vos affaires classées par numéro. Supprimez une affaire une fois son traitement terminé."
     >
       {/* Stats */}
       <div className="stats-row">
@@ -41,7 +41,7 @@ function AffairesPage() {
           <strong style={{ color: "#15803d" }}>{enCours}</strong>
         </article>
         <article className="stat-pill">
-          <span>Terminees</span>
+          <span>Terminées</span>
           <strong style={{ color: "#64748b" }}>{termines}</strong>
         </article>
       </div>
@@ -55,14 +55,14 @@ function AffairesPage() {
         >
           <option value="">Tous les statuts</option>
           <option value="En cours">En cours</option>
-          <option value="Termine">Termine</option>
+          <option value="Terminé">Terminé</option>
         </select>
       </div>
 
       {/* Liste */}
       <div className="affaires-list">
         {filtered.length === 0 && (
-          <p className="affaires-empty">Aucune affaire a afficher.</p>
+          <p className="affaires-empty">Aucune affaire à afficher.</p>
         )}
 
         {filtered.map((affaire) => {
@@ -118,7 +118,7 @@ function AffairesPage() {
                     to={`/dashboard/${affaire.id}`}
                     className="affaire-btn affaire-btn--view"
                   >
-                    Voir le detail
+                    Voir le détail
                   </Link>
 
                   {confirmId === affaire.id ? (

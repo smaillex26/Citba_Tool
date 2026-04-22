@@ -33,7 +33,7 @@ function ActifsLeasingPage() {
   return (
     <PageContainer
       title="Actifs en leasing"
-      description="Inventaire des materiels et equipements en location longue duree (LLD). Ces donnees alimenteront le calcul des immobilisations (scope 3)."
+      description="Inventaire des matériels et équipements en location longue durée (LLD). Ces données alimenteront le calcul des immobilisations (scope 3)."
     >
       <div className="summary-grid">
         {actifsLeasingStats.map((card) => (
@@ -53,7 +53,7 @@ function ActifsLeasingPage() {
           onChange={(e) => setDureeFilter(e.target.value)}
           className="filter-select"
         >
-          <option value="">Toutes les durees</option>
+          <option value="">Toutes les durées</option>
           {durees.map((d) => (
             <option key={d} value={d}>{d} mois</option>
           ))}
@@ -74,8 +74,8 @@ function ActifsLeasingPage() {
       <DataTable columns={actifsLeasingColumns} rows={filtered} />
 
       <div className="charts-grid">
-        <BarChart title="Repartition par duree de contrat" items={chartByDuree} />
-        <BarChart title="Repartition par tranche de montant" items={chartByMontant} />
+        <BarChart title="Répartition par durée de contrat" items={chartByDuree} />
+        <BarChart title="Répartition par tranche de montant" items={chartByMontant} />
       </div>
     </PageContainer>
   );

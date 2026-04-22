@@ -7,11 +7,17 @@ const mainLinks = [
 ];
 
 const dataPages = [
-  { to: "/donnees/collecte", label: "Collecte matieres" },
-  { to: "/donnees/deplacements-dt", label: "Deplacements domicile-travail" },
+  { to: "/donnees/collecte", label: "Collecte matières" },
+  { to: "/donnees/deplacements-dt", label: "Déplacements domicile-travail" },
   { to: "/donnees/actifs-leasing", label: "Actifs en leasing" },
   { to: "/donnees/sous-traitance", label: "Sous-traitance" },
-  { to: "/donnees/energie-process", label: "Energie et Process" },
+  { to: "/donnees/energie-process", label: "Énergie et Process" },
+  { to: "/donnees/achats-biens", label: "Achats de biens" },
+  { to: "/donnees/achats-services", label: "Achats de services" },
+  { to: "/donnees/biens-immobilises", label: "Biens immobilisés" },
+  { to: "/donnees/deplacements-pro", label: "Déplacements professionnels" },
+  { to: "/donnees/dechets", label: "Déchets" },
+  { to: "/donnees/transport-aval", label: "Transport aval & Fin de vie" },
 ];
 
 const endLinks = [
@@ -63,7 +69,7 @@ function Navbar() {
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
             >
-              Donnees <span className="site-nav__caret">{open ? "\u25B2" : "\u25BC"}</span>
+              Données <span className="site-nav__caret">{open ? "\u25B2" : "\u25BC"}</span>
             </button>
 
             {open && (

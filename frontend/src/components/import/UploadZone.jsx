@@ -57,7 +57,7 @@ function UploadZone({ onFileSelected, status = "idle" }) {
   const statusLabel = {
     idle: null,
     loading: "Lecture du fichier en cours...",
-    success: "Fichier traite avec succes.",
+    success: "Fichier traité avec succès.",
     error: "Erreur lors du traitement.",
   };
 

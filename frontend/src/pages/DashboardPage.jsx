@@ -6,8 +6,8 @@ import { summaryCards, chartByFamily, chartByCountry } from "../data/mockData.js
 function DashboardPage() {
   return (
     <PageContainer
-      title="Dashboard"
-      description="Vue synthetique des donnees importees. Les graphiques et cartes seront alimentes par le backend."
+      title="Tableau de bord — Statistiques"
+      description="Vue synthétique des données importées. Les graphiques et cartes seront alimentés par le backend."
     >
       <div className="summary-grid">
         {summaryCards.map((card) => (
@@ -22,8 +22,8 @@ function DashboardPage() {
       </div>
 
       <div className="charts-grid">
-        <BarChart title="Repartition par famille (tonnes)" items={chartByFamily} />
-        <BarChart title="Repartition par pays (tonnes)" items={chartByCountry} />
+        <BarChart title="Répartition par famille (tonnes)" items={chartByFamily} />
+        <BarChart title="Répartition par pays (tonnes)" items={chartByCountry} />
       </div>
     </PageContainer>
   );

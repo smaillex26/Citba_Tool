@@ -37,7 +37,7 @@ function SousTraitancePage() {
   return (
     <PageContainer
       title="Sous-traitance"
-      description="Prestations realisees par des sous-traitants externes. Ces donnees alimenteront le calcul des achats de services (scope 3)."
+      description="Prestations réalisées par des sous-traitants externes. Ces données alimenteront le calcul des achats de services (scope 3)."
     >
       <div className="summary-grid">
         {sousTraitanceStats.map((card) => (
@@ -57,7 +57,7 @@ function SousTraitancePage() {
           onChange={(e) => setSocieteFilter(e.target.value)}
           className="filter-select"
         >
-          <option value="">Toutes les societes</option>
+          <option value="">Toutes les sociétés</option>
           {societes.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}

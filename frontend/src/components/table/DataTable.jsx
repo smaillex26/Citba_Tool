@@ -91,7 +91,7 @@ function DataTable({ columns, rows }) {
             {paged.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="data-table__empty">
-                  Aucun resultat
+                  Aucun résultat
                 </td>
               </tr>
             ) : (
@@ -113,7 +113,7 @@ function DataTable({ columns, rows }) {
             disabled={safePage === 0}
             onClick={() => setPage((p) => p - 1)}
           >
-            Precedent
+            Précédent
           </button>
           <span>
             Page {safePage + 1} / {totalPages}

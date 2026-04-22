@@ -12,7 +12,7 @@ export async function uploadExcelFile(file) {
     if (!res.ok) throw new Error(`Erreur serveur ${res.status}`);
     return await res.json();
   } catch {
-    return { success: false, message: "Backend non connecte. Mode demonstration." };
+    return { success: false, message: "Backend non connecté. Mode démonstration." };
   }
 }
 

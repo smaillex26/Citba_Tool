@@ -16,7 +16,7 @@ function AffaireDetailPage() {
   if (!affaire) {
     return (
       <PageContainer title="Affaire introuvable">
-        <p>L'affaire <strong>{id}</strong> n'existe pas ou a deja ete supprimee.</p>
+        <p>L'affaire <strong>{id}</strong> n'existe pas ou elle a déjà été supprimée.</p>
         <Link to="/dashboard" className="affaire-btn affaire-btn--view" style={{ display: "inline-flex", marginTop: 16 }}>
           Retour au tableau de bord
         </Link>
@@ -26,15 +26,15 @@ function AffaireDetailPage() {
 
   const STATUT_COLOR = {
     "En cours": { bg: "#dcfce7", text: "#15803d" },
-    "Termine":  { bg: "#f1f5f9", text: "#64748b" },
+    "Terminé":  { bg: "#f1f5f9", text: "#64748b" },
   };
   const colors = STATUT_COLOR[affaire.statut] || STATUT_COLOR["En cours"];
 
   const cards = [
-    { id: 1, label: "Lignes importees", value: affaire.lignes.toLocaleString("fr-FR"), helper: "Total des lignes traitees", accent: "blue" },
+    { id: 1, label: "Lignes importées", value: affaire.lignes.toLocaleString("fr-FR"), helper: "Total des lignes traitées", accent: "blue" },
     { id: 2, label: "Tonnage total", value: affaire.tonnageTotal > 0 ? `${affaire.tonnageTotal} t` : "—", helper: "Poids converti en tonnes", accent: "green" },
     { id: 3, label: "Fournisseurs", value: affaire.fournisseurs > 0 ? String(affaire.fournisseurs) : "—", helper: "Fournisseurs distincts", accent: "amber" },
-    { id: 4, label: "Categories", value: String(affaire.categories.length), helper: "Tableaux de donnees couverts", accent: "slate" },
+    { id: 4, label: "Catégories", value: String(affaire.categories.length), helper: "Tableaux de données couverts", accent: "slate" },
   ];
 
   return (
@@ -58,7 +58,7 @@ function AffaireDetailPage() {
       {/* Infos affaire */}
       <div className="affaire-detail-meta">
         <div className="affaire-detail-meta__item">
-          <span>Numero</span>
+          <span>Numéro</span>
           <strong>{affaire.id}</strong>
         </div>
         <div className="affaire-detail-meta__item">
@@ -66,11 +66,11 @@ function AffaireDetailPage() {
           <strong>{affaire.fichierSource}</strong>
         </div>
         <div className="affaire-detail-meta__item">
-          <span>Date de creation</span>
+          <span>Date de création</span>
           <strong>{new Date(affaire.dateCreation).toLocaleDateString("fr-FR")}</strong>
         </div>
         <div className="affaire-detail-meta__item">
-          <span>Categories</span>
+          <span>Catégories</span>
           <div className="affaire-card__tags" style={{ marginTop: 4 }}>
             {affaire.categories.map((c) => (
               <span key={c} className="affaire-tag">{c}</span>
@@ -92,17 +92,17 @@ function AffaireDetailPage() {
         ))}
       </div>
 
-      {/* Graphiques (donnees de test) */}
+      {/* Graphiques (données de test) */}
       <div className="charts-grid">
-        <BarChart title="Repartition par famille (tonnes)" items={chartByFamily} />
-        <BarChart title="Repartition par pays (tonnes)" items={chartByCountry} />
+        <BarChart title="Répartition par famille (tonnes)" items={chartByFamily} />
+        <BarChart title="Répartition par pays (tonnes)" items={chartByCountry} />
       </div>
 
       {/* Zone suppression */}
       <div className="affaire-danger-zone">
         <div>
           <h3>Supprimer cette affaire</h3>
-          <p>Cette action est irreversible. Toutes les donnees associees seront effacees.</p>
+          <p>Cette action est irréversible. Toutes les données associées seront effacées.</p>
         </div>
         {confirm ? (
           <div className="affaire-confirm">
@@ -111,7 +111,7 @@ function AffaireDetailPage() {
               className="affaire-btn affaire-btn--danger"
               onClick={() => navigate("/dashboard")}
             >
-              Supprimer definitivement
+              Supprimer définitivement
             </button>
             <button
               className="affaire-btn affaire-btn--cancel"
