@@ -1404,6 +1404,82 @@ select {
   background: var(--green-50);
 }
 
+/* ===== IMPORT PAGE ===== */
+
+.import-status-msg {
+  font-size: 0.95rem;
+  color: var(--slate-500);
+  margin: 0 0 12px;
+}
+
+.import-status-msg--error {
+  color: #ef4444;
+}
+
+.import-success {
+  background: var(--green-50);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.import-success__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--emerald-700);
+  margin: 0 0 8px;
+}
+
+.import-success__sub {
+  font-size: 0.9rem;
+  color: var(--slate-500);
+  margin: 0 0 16px;
+}
+
+.import-success__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.import-reset-btn {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  color: var(--slate-400);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.import-reset-btn:hover {
+  color: var(--slate-600);
+}
+
+/* ===== BADGE SOURCE DE DONNÉES ===== */
+
+.data-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.data-source-badge--live {
+  background: #dcfce7;
+  color: var(--emerald-700);
+}
+
+.data-source-badge--mock {
+  background: #fef9c3;
+  color: #92400e;
+}
+
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 720px) {

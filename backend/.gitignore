@@ -1,0 +1,17 @@
+# Environnement virtuel Python
+.venv/
+venv/
+env/
+
+# Bytecode Python
+__pycache__/
+*.py[cod]
+
+# Fichiers Excel uploadés (temporaires)
+uploads/
+
+# JSON générés après import (données de travail, pas du code)
+data/*.json
+
+# Logs
+*.log

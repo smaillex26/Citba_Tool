@@ -47,8 +47,9 @@ def _process(job_id: str, path: Path):
     """Traitement réel : parsing + sauvegarde JSON."""
     _jobs[job_id]["status"] = "processing"
     try:
-        parse_excel(path)
+        results = parse_excel(path)
         _jobs[job_id]["status"] = "done"
+        _jobs[job_id]["datasets"] = list(results.keys())
     except Exception as exc:
         _jobs[job_id]["status"] = "error"
         _jobs[job_id]["detail"] = str(exc)

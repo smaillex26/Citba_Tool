@@ -1,0 +1,13 @@
+{
+  "files.exclude": {
+    "backend/.venv": true,
+    "backend/**/__pycache__": true,
+    "backend/**/*.pyc": true,
+    "frontend/node_modules": true
+  },
+  "search.exclude": {
+    "backend/.venv/**": true,
+    "backend/**/__pycache__/**": true,
+    "frontend/node_modules/**": true
+  }
+}
