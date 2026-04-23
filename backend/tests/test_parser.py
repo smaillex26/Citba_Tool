@@ -14,11 +14,11 @@ from services.parser import parse_excel, _normalize, ONGLET_MAP, COLONNE_MAP
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
-def make_excel(sheets: dict[str, list[list]]) -> Path:
+def make_excel(sheets: dict[str, list[list]], title_rows: int = 0) -> io.BytesIO:
     """
-    Crée un fichier Excel temporaire.
+    Crée un fichier Excel en mémoire.
     sheets = { "Nom onglet": [[header1, header2], [val1, val2], ...] }
-    Retourne un Path vers un fichier temporaire en mémoire (via tmp_path).
+    title_rows : nombre de lignes de titre à insérer avant les en-têtes.
     """
     wb = openpyxl.Workbook()
     first = True
@@ -29,6 +29,9 @@ def make_excel(sheets: dict[str, list[list]]) -> Path:
             first = False
         else:
             ws = wb.create_sheet(sheet_name)
+        # Insérer des lignes de titre vides / avec texte quelconque
+        for _ in range(title_rows):
+            ws.append(["Calculette Carbone CITBA - Données internes"])
         for row in rows:
             ws.append(row)
     buf = io.BytesIO()
@@ -96,9 +99,10 @@ def test_parse_energie_simple(tmp_path, monkeypatch):
     assert len(rows) == 2
 
     eau = next(r for r in rows if r["energie"] == "Eau")
-    assert eau["kgCO2e"]  == pytest.approx(16 * 0.13, rel=1e-4)
-    assert eau["scope"]   == "3 amont"
-    assert eau["pourcentage"] > 0
+    assert eau["kgCO2e"] == pytest.approx(16 * 0.13, rel=1e-4)
+    assert eau["scope"]  == "3 amont"
+    # pourcentage est désormais calculé côté frontend (GroupedDataTable), pas dans le parser
+    assert "pourcentage" not in eau
 
 
 def test_parse_energie_json_sauvegarde(tmp_path, monkeypatch):
@@ -158,3 +162,96 @@ def test_parse_lignes_vides_ignorees(tmp_path, monkeypatch):
 
     results = parse_excel(xlsx)
     assert len(results["energie"]) == 2
+
+
+def test_parse_avec_lignes_titre_avant_entetes(tmp_path, monkeypatch):
+    """
+    Cas réel : le fichier contient des lignes de titre avant les vrais en-têtes.
+    Le parser doit détecter automatiquement la bonne ligne d'en-tête.
+    """
+    import services.parser as parser_mod
+    monkeypatch.setattr(parser_mod, "DATA_DIR", tmp_path)
+
+    # 3 lignes de titre avant les vraies colonnes
+    buf = make_excel(
+        {
+            "Energie": [
+                ["Site", "Energie", "Quantite", "Unite"],
+                ["Arthez", "Eau", 16, "m3"],
+                ["Pontonx", "Gasoil", 500, "L"],
+            ]
+        },
+        title_rows=3,
+    )
+    xlsx = tmp_path / "avec_titre.xlsx"
+    xlsx.write_bytes(buf.read())
+
+    results = parse_excel(xlsx)
+
+    assert "energie" in results
+    rows = results["energie"]
+    assert len(rows) == 2
+    assert rows[0]["energie"] == "Eau"
+    assert rows[1]["energie"] == "Gasoil"
+
+
+def test_inspect_excel(tmp_path, monkeypatch):
+    """inspect_excel retourne le bon rapport de diagnostic."""
+    import services.parser as parser_mod
+    monkeypatch.setattr(parser_mod, "DATA_DIR", tmp_path)
+
+    buf = make_excel({
+        "Energie": [
+            ["Arthez"],
+            ["Energie", "Quantite", "Unite"],
+            ["Eau", 16, "m3"],
+        ]
+    })
+    xlsx = tmp_path / "inspect.xlsx"
+    xlsx.write_bytes(buf.read())
+
+    from services.parser import inspect_excel
+    report = inspect_excel(xlsx)
+
+    assert "sheets" in report
+    sheet = report["sheets"][0]
+    assert sheet["dataset"] == "energie"
+    assert "Arthez" in sheet["sites_detected"]
+    assert "energie" in sheet["columns_recognized"]
+
+
+def test_parse_site_au_dessus_du_tableau(tmp_path, monkeypatch):
+    """
+    Format réel : nom du site écrit seul au-dessus de chaque mini-tableau,
+    sans colonne 'Site' dans les données.
+    """
+    import services.parser as parser_mod
+    monkeypatch.setattr(parser_mod, "DATA_DIR", tmp_path)
+
+    buf = make_excel({
+        "Energie": [
+            ["Arthez"],
+            ["Energie", "Quantite", "Unite"],
+            ["Eau", 16, "m3"],
+            ["Gasoil", 500, "L"],
+            [],
+            ["Palplast"],
+            ["Energie", "Quantite", "Unite"],
+            ["Eau", 20, "m3"],
+        ]
+    })
+    xlsx = tmp_path / "multi_site.xlsx"
+    xlsx.write_bytes(buf.read())
+
+    results = parse_excel(xlsx)
+
+    assert "energie" in results
+    rows = results["energie"]
+    assert len(rows) == 3
+
+    sites = {r["site"] for r in rows}
+    assert "Arthez" in sites
+    assert "Palplast" in sites
+
+    arthez_eau = next(r for r in rows if r["site"] == "Arthez" and r["energie"] == "Eau")
+    assert arthez_eau["kgCO2e"] == pytest.approx(16 * 0.13, rel=1e-3)

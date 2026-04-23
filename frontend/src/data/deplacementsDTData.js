@@ -1,15 +1,15 @@
 export const deplacementsDTColumns = [
-  { key: "codePersonne", label: "Code personne" },
-  { key: "vehiculePro", label: "Véhicule professionnel" },
-  { key: "adresseDomicile", label: "Adresse domicile" },
-  { key: "site", label: "Site" },
-  { key: "distanceKm", label: "Distance (km)" },
-  { key: "trajetsJour", label: "Trajets / jour" },
-  { key: "moyenDeplacement", label: "Moyen de déplacement" },
-  { key: "joursAn", label: "Jours travaillés / an" },
-  { key: "secondMoyen", label: "Second moyen" },
-  { key: "secondProportion", label: "Proportion 2e moyen" },
-  { key: "teletravail", label: "Télétravail" },
+  { key: "codePersonne",     label: "Code personne"          },
+  { key: "vehiculePro",      label: "Véhicule professionnel" },
+  { key: "adresseDomicile",  label: "Adresse domicile"       },
+  { key: "site",             label: "Site"                   },
+  { key: "distanceKm",       label: "Distance (km)",    align: "right" },
+  { key: "trajetsJour",      label: "Trajets / jour",   align: "right" },
+  { key: "moyenDeplacement", label: "Moyen de déplacement"  },
+  { key: "joursAn",          label: "Jours travaillés / an", align: "right" },
+  { key: "secondMoyen",      label: "Second moyen"           },
+  { key: "secondProportion", label: "Proportion 2e moyen",   align: "right" },
+  { key: "teletravail",      label: "Télétravail"            },
 ];
 
 export const deplacementsDTRows = [

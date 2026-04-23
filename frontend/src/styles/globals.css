@@ -74,7 +74,7 @@ select {
 
 .app-main {
   flex: 1;
-  width: min(1120px, calc(100% - 32px));
+  width: min(1400px, calc(100% - 48px));
   margin: 0 auto;
   padding: 32px 0 48px;
 }
@@ -90,7 +90,7 @@ select {
 }
 
 .site-header__inner {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1400px, calc(100% - 48px));
   margin: 0 auto;
   padding: 14px 0;
   display: flex;
@@ -599,17 +599,22 @@ select {
 .table-wrapper {
   overflow-x: auto;
   padding: 16px 20px 20px;
+  /* Centre le tableau dans sa carte quand il est plus étroit que le conteneur */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 860px;
+  margin: 0 auto;
 }
 
 .data-table th,
 .data-table td {
-  padding: 12px 14px;
+  padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid var(--green-100);
   white-space: nowrap;
@@ -622,6 +627,12 @@ select {
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* Alignement à droite pour les colonnes numériques */
+.data-table th.col-right,
+.data-table td.col-right {
+  text-align: right;
 }
 
 .data-table__sortable {
@@ -645,6 +656,26 @@ select {
   text-align: center;
   color: #94a3b8;
   padding: 32px 14px;
+}
+
+/* Ligne sous-total (fin de groupe) */
+.data-table__subtotal td {
+  background: var(--green-50);
+  border-top: 2px solid var(--green-300);
+  border-bottom: 2px solid var(--green-300);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--green-800);
+}
+
+/* Ligne grand total (bas du tableau) */
+.data-table__grand-total td {
+  background: var(--emerald-700);
+  border-top: 2px solid var(--emerald-800);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #ffffff;
+  letter-spacing: 0.01em;
 }
 
 .table-card__pagination {

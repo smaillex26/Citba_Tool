@@ -78,7 +78,10 @@ function DataTable({ columns, rows }) {
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="data-table__sortable"
+                  className={[
+                    "data-table__sortable",
+                    col.align === "right" ? "col-right" : "",
+                  ].filter(Boolean).join(" ")}
                   onClick={() => handleSort(col.key)}
                 >
                   {col.label}
@@ -98,7 +101,12 @@ function DataTable({ columns, rows }) {
               paged.map((row) => (
                 <tr key={row.id}>
                   {columns.map((col) => (
-                    <td key={`${row.id}-${col.key}`}>{row[col.key]}</td>
+                    <td
+                      key={`${row.id}-${col.key}`}
+                      className={col.align === "right" ? "col-right" : undefined}
+                    >
+                      {row[col.key]}
+                    </td>
                   ))}
                 </tr>
               ))

@@ -1,7 +1,7 @@
 export const actifsLeasingColumns = [
-  { key: "materiel", label: "Matériel / équipement" },
-  { key: "montantEuro", label: "Montant (EUR)" },
-  { key: "dureeLLD", label: "Durée LLD (mois)" },
+  { key: "materiel",    label: "Matériel / équipement"  },
+  { key: "montantEuro", label: "Montant (EUR)",  align: "right" },
+  { key: "dureeLLD",    label: "Durée LLD (mois)", align: "right" },
 ];
 
 export const actifsLeasingRows = [

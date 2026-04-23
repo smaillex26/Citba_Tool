@@ -1,7 +1,7 @@
 export const sousTraitanceColumns = [
-  { key: "societe", label: "Société de sous-traitance" },
-  { key: "typePrestation", label: "Type de prestation" },
-  { key: "montantEuro", label: "Montant facture (EUR)" },
+  { key: "societe",        label: "Société de sous-traitance" },
+  { key: "typePrestation", label: "Type de prestation"        },
+  { key: "montantEuro",    label: "Montant facture (EUR)", align: "right" },
 ];
 
 export const sousTraitanceRows = [

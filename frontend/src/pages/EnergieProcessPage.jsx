@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
-import DataTable from "../components/table/DataTable.jsx";
+import GroupedDataTable from "../components/table/GroupedDataTable.jsx";
 import SummaryCard from "../components/dashboard/SummaryCard.jsx";
 import BarChart from "../components/dashboard/BarChart.jsx";
 import {
@@ -86,16 +86,16 @@ function EnergieProcessPage() {
       .map(([label, value], i) => ({ label, value, display: fmtKg(value), color: PALETTE[i % 10] }));
   }, [filtered]);
 
-  /* Lignes tableau : formatage d'affichage */
-  const tableRows = useMemo(() =>
-    filtered.map((r) => ({
-      ...r,
-      kgCO2e:        (r.kgCO2e ?? 0).toLocaleString("fr-FR", { maximumFractionDigits: 2 }),
-      pourcentage:   totalKgCO2e > 0 ? `${(((r.kgCO2e ?? 0) / totalKgCO2e) * 100).toFixed(2)} %` : "—",
-      quantite:      (r.quantite ?? 0).toLocaleString("fr-FR"),
-      feKgCO2eUnite: r.feKgCO2eUnite,
-    })),
-  [filtered, totalKgCO2e]);
+  /* Colonnes avec fonctions de formatage pour GroupedDataTable */
+  const tableColumns = useMemo(() =>
+    energieProcessColumns.map((col) => {
+      if (col.key === "quantite")
+        return { ...col, format: (v) => (v ?? 0).toLocaleString("fr-FR") };
+      if (col.key === "feKgCO2eUnite")
+        return { ...col, format: (v) => v };
+      return col;
+    }),
+  []);
 
   return (
     <PageContainer
@@ -111,7 +111,7 @@ function EnergieProcessPage() {
       <div className="summary-grid">
         <SummaryCard label="Total kg CO2e"  value={fmtKg(totalKgCO2e)} helper="Toutes énergies confondues"    accent="green" />
         <SummaryCard label="Scope 1"        value={fmtKg(totalScope1)}  helper="Combustion + frigorigènes"     accent="red"   />
-        <SummaryCard label="Scope 2"        value={fmtKg(totalScope2)}  helper="Électricité réseau"            accent="blue"  />
+        <SummaryCard label="Scope 2"        value={fmtKg(totalScope2)}  helper="Émissions indirectes — électricité"  accent="blue"  />
         <SummaryCard label="Scope 3 amont"  value={fmtKg(totalScope3)}  helper="Produits et services achetés"  accent="amber" />
       </div>
 
@@ -165,8 +165,14 @@ function EnergieProcessPage() {
         <article className="stat-pill"><span>Total CO2e</span><strong>{fmtKg(totalKgCO2e)}</strong></article>
       </div>
 
-      {/* Tableau */}
-      <DataTable columns={energieProcessColumns} rows={tableRows} />
+      {/* Tableau groupé par site avec sous-totaux et grand total */}
+      <GroupedDataTable
+        columns={tableColumns}
+        rows={filtered}
+        groupKey="site"
+        sumKey="kgCO2e"
+        pctKey="pourcentage"
+      />
 
       {/* Graphiques */}
       <div className="charts-grid">

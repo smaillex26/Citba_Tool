@@ -1,15 +1,15 @@
 export const collectColumns = [
-  { key: "reference", label: "Référence" },
-  { key: "designation", label: "Désignation" },
-  { key: "famille", label: "Famille" },
+  { key: "reference",   label: "Référence"    },
+  { key: "designation", label: "Désignation"  },
+  { key: "famille",     label: "Famille"      },
   { key: "sousFamille", label: "Sous-famille" },
-  { key: "fournisseur", label: "Fournisseur" },
-  { key: "quantite", label: "Quantité" },
-  { key: "unite", label: "Unité" },
-  { key: "poidsKg", label: "Poids (kg)" },
-  { key: "poidsTonne", label: "Poids (t)" },
-  { key: "ville", label: "Ville" },
-  { key: "pays", label: "Pays" },
+  { key: "fournisseur", label: "Fournisseur"  },
+  { key: "quantite",    label: "Quantité",    align: "right" },
+  { key: "unite",       label: "Unité"        },
+  { key: "poidsKg",     label: "Poids (kg)",  align: "right" },
+  { key: "poidsTonne",  label: "Poids (t)",   align: "right" },
+  { key: "ville",       label: "Ville"        },
+  { key: "pays",        label: "Pays"         },
 ];
 
 export const collectRows = [

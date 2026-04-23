@@ -5,7 +5,7 @@
 
 const RAW = [
   /* ===== ARTHEZ ===== */
-  { id:  1, site:"Arthez",     energie:"Électricité",   quantite:285000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Électricité achetée",        scope:"2",       commentaire:"" },
+  { id:  1, site:"Arthez",     energie:"Électricité",   quantite:285000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Émissions indirectes liées à la consommation d'électricité",        scope:"2",       commentaire:"" },
   { id:  2, site:"Arthez",     energie:"Gaz naturel",   quantite:12400,  unite:"m3",  facteurEmission:"Énergie - Gaz naturel",              feKgCO2eUnite:2.202,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id:  3, site:"Arthez",     energie:"Propane",       quantite:3200,   unite:"L",   facteurEmission:"Énergie - Propane",                  feKgCO2eUnite:1.613,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id:  4, site:"Arthez",     energie:"Butane",        quantite:800,    unite:"L",   facteurEmission:"Énergie - Butane",                   feKgCO2eUnite:1.634,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
@@ -23,7 +23,7 @@ const RAW = [
   { id: 16, site:"Arthez",     energie:"Climatiseur",   quantite:12,     unite:"kg",  facteurEmission:"Frigorigène - R410A",                feKgCO2eUnite:1630,   categorieEmission:"Fuites frigorigènes",         scope:"1",       commentaire:"" },
 
   /* ===== PALPLAST ===== */
-  { id: 17, site:"Palplast",   energie:"Électricité",   quantite:420000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Électricité achetée",        scope:"2",       commentaire:"" },
+  { id: 17, site:"Palplast",   energie:"Électricité",   quantite:420000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Émissions indirectes liées à la consommation d'électricité",        scope:"2",       commentaire:"" },
   { id: 18, site:"Palplast",   energie:"Gaz naturel",   quantite:18600,  unite:"m3",  facteurEmission:"Énergie - Gaz naturel",              feKgCO2eUnite:2.202,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id: 19, site:"Palplast",   energie:"Fioul",         quantite:4500,   unite:"L",   facteurEmission:"Énergie - Fioul domestique",         feKgCO2eUnite:2.764,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id: 20, site:"Palplast",   energie:"Gasoil",        quantite:9200,   unite:"L",   facteurEmission:"Énergie - Gasoil",                   feKgCO2eUnite:2.663,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
@@ -40,7 +40,7 @@ const RAW = [
   { id: 31, site:"Palplast",   energie:"Climatiseur",   quantite:18,     unite:"kg",  facteurEmission:"Frigorigène - R410A",                feKgCO2eUnite:1630,   categorieEmission:"Fuites frigorigènes",         scope:"1",       commentaire:"" },
 
   /* ===== PONTONX ===== */
-  { id: 32, site:"Pontonx",    energie:"Électricité",   quantite:195000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Électricité achetée",        scope:"2",       commentaire:"" },
+  { id: 32, site:"Pontonx",    energie:"Électricité",   quantite:195000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Émissions indirectes liées à la consommation d'électricité",        scope:"2",       commentaire:"" },
   { id: 33, site:"Pontonx",    energie:"Gaz naturel",   quantite:8700,   unite:"m3",  facteurEmission:"Énergie - Gaz naturel",              feKgCO2eUnite:2.202,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id: 34, site:"Pontonx",    energie:"Propane",       quantite:2400,   unite:"L",   facteurEmission:"Énergie - Propane",                  feKgCO2eUnite:1.613,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id: 35, site:"Pontonx",    energie:"Gasoil",        quantite:5100,   unite:"L",   facteurEmission:"Énergie - Gasoil",                   feKgCO2eUnite:2.663,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
@@ -57,7 +57,7 @@ const RAW = [
   { id: 46, site:"Pontonx",    energie:"Climatiseur",   quantite:8,      unite:"kg",  facteurEmission:"Frigorigène - R410A",                feKgCO2eUnite:1630,   categorieEmission:"Fuites frigorigènes",         scope:"1",       commentaire:"" },
 
   /* ===== INFAUTELEC ===== */
-  { id: 47, site:"Infautelec", energie:"Électricité",   quantite:340000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Électricité achetée",        scope:"2",       commentaire:"" },
+  { id: 47, site:"Infautelec", energie:"Électricité",   quantite:340000, unite:"kWh", facteurEmission:"Énergie - Électricité réseau",      feKgCO2eUnite:0.0599, categorieEmission:"Émissions indirectes liées à la consommation d'électricité",        scope:"2",       commentaire:"" },
   { id: 48, site:"Infautelec", energie:"Gaz naturel",   quantite:15200,  unite:"m3",  facteurEmission:"Énergie - Gaz naturel",              feKgCO2eUnite:2.202,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id: 49, site:"Infautelec", energie:"Propane",       quantite:2800,   unite:"L",   facteurEmission:"Énergie - Propane",                  feKgCO2eUnite:1.613,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
   { id: 50, site:"Infautelec", energie:"Butane",        quantite:1200,   unite:"L",   facteurEmission:"Énergie - Butane",                   feKgCO2eUnite:1.634,  categorieEmission:"Combustion stationnaire",    scope:"1",       commentaire:"" },
@@ -90,22 +90,22 @@ export const energieProcessRows = RAW.map((r) => {
 export const energieProcessColumns = [
   { key: "site",               label: "Site"                    },
   { key: "energie",            label: "Énergie"                 },
-  { key: "quantite",           label: "Quantité"                },
+  { key: "quantite",           label: "Quantité",   align: "right" },
   { key: "unite",              label: "Unité"                   },
   { key: "facteurEmission",    label: "Facteurs d'émissions"    },
-  { key: "feKgCO2eUnite",      label: "FE kg CO2e"              },
+  { key: "feKgCO2eUnite",      label: "FE kg CO2e", align: "right" },
   { key: "categorieEmission",  label: "Catégorie d'émission"    },
   { key: "scope",              label: "Scope"                   },
   { key: "commentaire",        label: "Commentaire"             },
-  { key: "kgCO2e",             label: "kg CO2e"                 },
-  { key: "pourcentage",        label: "%"                       },
+  { key: "kgCO2e",             label: "kg CO2e",    align: "right" },
+  { key: "pourcentage",        label: "%",          align: "right" },
 ];
 
 export const SITES = ["Arthez", "Palplast", "Pontonx", "Infautelec"];
 export const SCOPES = ["1", "2", "3 amont"];
 export const CATEGORIES = [
   "Combustion stationnaire",
-  "Électricité achetée",
+  "Émissions indirectes liées à la consommation d'électricité",
   "Produits et services achetés",
   "Fuites frigorigènes",
 ];
