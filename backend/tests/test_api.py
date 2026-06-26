@@ -79,6 +79,55 @@ def test_list_available_datasets(tmp_path, monkeypatch):
     assert "dechets"  in body["available"]
 
 
+def test_import_history_endpoint():
+    res = client.get("/api/imports")
+    assert res.status_code == 200
+    assert "imports" in res.json()
+
+
+def test_delete_unknown_import():
+    res = client.delete("/api/imports/999999")
+    assert res.status_code == 404
+
+
+def test_emission_factors_endpoint():
+    res = client.get("/api/emission-factors")
+    assert res.status_code == 200
+    body = res.json()
+    assert "factors" in body
+    assert any(factor["name"] == "Électricité" for factor in body["factors"])
+
+
+def test_create_and_update_emission_factor():
+    create_res = client.post("/api/emission-factors", json={
+        "name": "Test facteur",
+        "factor_kg_co2e": 1.23,
+        "category": "Test",
+        "unit": "kg",
+        "scope": "3 amont",
+        "source": "Test",
+        "year": 2026,
+        "comment": "Créé par test",
+    })
+    assert create_res.status_code == 200
+    factor = create_res.json()["factor"]
+
+    update_res = client.put(f"/api/emission-factors/{factor['id']}", json={
+        "name": "Test facteur modifié",
+        "factor_kg_co2e": 2.34,
+        "category": "Test",
+        "unit": "kg",
+        "scope": "3 amont",
+        "source": "Test",
+        "year": 2026,
+        "comment": "Modifié par test",
+    })
+    assert update_res.status_code == 200
+    updated = update_res.json()["factor"]
+    assert updated["name"] == "Test facteur modifié"
+    assert updated["factor_kg_co2e"] == 2.34
+
+
 # ── Upload ──────────────────────────────────────────────────────────────────
 
 def _make_excel_bytes(sheet_name: str = "Energie") -> bytes:
@@ -130,6 +179,20 @@ def test_upload_valid_excel(tmp_path, monkeypatch):
     if body["status"] == "done":
         assert body["summary"]["total_rows"] == 1
         assert body["summary"]["datasets"][0]["key"] == "energie"
+
+        excel_res = client.get("/api/exports/excel")
+        assert excel_res.status_code == 200
+        assert excel_res.headers["content-type"].startswith(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        pdf_res = client.get("/api/exports/pdf")
+        assert pdf_res.status_code == 200
+        assert pdf_res.headers["content-type"].startswith("application/pdf")
+
+        delete_res = client.delete(f"/api/imports/{body['import_id']}")
+        assert delete_res.status_code == 200
+        assert delete_res.json()["deleted"] == body["import_id"]
 
 
 def test_upload_status_unknown_job():

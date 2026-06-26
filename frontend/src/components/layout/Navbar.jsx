@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 const mainLinks = [
   { to: "/", label: "Accueil", end: true },
   { to: "/import", label: "Import" },
+  { to: "/imports", label: "Historique" },
 ];
 
 const dataPages = [
@@ -22,6 +23,7 @@ const dataPages = [
 
 const endLinks = [
   { to: "/dashboard", label: "Tableau de bord" },
+  { to: "/facteurs-emission", label: "Facteurs d'émission" },
 ];
 
 function Navbar() {

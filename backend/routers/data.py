@@ -2,8 +2,15 @@ import json
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
+from services.database import (
+    delete_import,
+    get_latest_dataset,
+    list_import_history,
+    list_latest_available_datasets,
+)
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DEFAULT_DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = DEFAULT_DATA_DIR
 
 router = APIRouter(tags=["Données"])
 
@@ -33,13 +40,14 @@ def _read(name: str):
 @router.get("/data/{dataset}")
 def get_dataset(dataset: str):
     """
-    Retourne les données JSON d'un jeu de données.
-    Remplace les fichiers mock JS du frontend une fois le fichier importé.
+    Retourne les données du dernier import pour un jeu de données.
     """
     if dataset not in DATASETS:
         raise HTTPException(status_code=404, detail=f"Jeu de données '{dataset}' inconnu.")
 
-    data = _read(dataset)
+    # En application normale, la base est la source de vérité.
+    # Le fallback JSON ne sert que pour les tests/compatibilité quand DATA_DIR est monkeypatché.
+    data = get_latest_dataset(dataset) if DATA_DIR == DEFAULT_DATA_DIR else _read(dataset)
     if data is None:
         raise HTTPException(
             status_code=404,
@@ -50,6 +58,25 @@ def get_dataset(dataset: str):
 
 @router.get("/data")
 def list_available():
-    """Liste les jeux de données disponibles (fichier JSON présent)."""
-    available = [name for name in DATASETS if (DATA_DIR / f"{name}.json").exists()]
+    """Liste les jeux de données disponibles dans le dernier import."""
+    available = (
+        list_latest_available_datasets(DATASETS)
+        if DATA_DIR == DEFAULT_DATA_DIR
+        else [name for name in DATASETS if (DATA_DIR / f"{name}.json").exists()]
+    )
     return {"available": available, "all": DATASETS}
+
+
+@router.get("/imports")
+def imports_history():
+    """Retourne l'historique des imports Excel."""
+    return {"imports": list_import_history()}
+
+
+@router.delete("/imports/{import_id}")
+def remove_import(import_id: int):
+    """Supprime un import et toutes ses lignes de données associées."""
+    deleted = delete_import(import_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Import introuvable.")
+    return {"status": "ok", "deleted": import_id}

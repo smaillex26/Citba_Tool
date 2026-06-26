@@ -48,12 +48,12 @@ function HomePage() {
       {/* ---- Stats bar ---- */}
       <section className="home-bar">
         <div className="home-bar__item">
-          <strong>4</strong>
+          <strong>11</strong>
           <span>Pages de données</span>
         </div>
         <div className="home-bar__sep" />
         <div className="home-bar__item">
-          <strong>11+</strong>
+          <strong>80+</strong>
           <span>Colonnes analysées</span>
         </div>
         <div className="home-bar__sep" />

@@ -58,6 +58,25 @@ export async function getUploadStatus(jobId) {
   }
 }
 
+export async function listImports() {
+  try {
+    return await apiFetch("/imports");
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteImport(importId) {
+  try {
+    return await apiFetch(`/imports/${importId}`, { method: "DELETE" });
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof ApiError ? err.message : "Impossible de supprimer cet import.",
+    };
+  }
+}
+
 // ── Données ───────────────────────────────────────────────────────────────────
 
 /**
@@ -83,6 +102,48 @@ export async function listAvailableDatasets() {
   } catch {
     return null;
   }
+}
+
+export async function listEmissionFactors() {
+  try {
+    return await apiFetch("/emission-factors");
+  } catch {
+    return null;
+  }
+}
+
+export async function saveEmissionFactor(factor) {
+  const isUpdate = Boolean(factor.id);
+  const path = isUpdate ? `/emission-factors/${factor.id}` : "/emission-factors";
+  try {
+    return await apiFetch(path, {
+      method: isUpdate ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: factor.name,
+        category: factor.category || null,
+        unit: factor.unit || null,
+        factor_kg_co2e: Number(factor.factor_kg_co2e),
+        scope: factor.scope || null,
+        source: factor.source || null,
+        year: factor.year ? Number(factor.year) : null,
+        comment: factor.comment || null,
+      }),
+    });
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof ApiError ? err.message : "Impossible d'enregistrer ce facteur.",
+    };
+  }
+}
+
+export function exportExcelUrl() {
+  return "/api/exports/excel";
+}
+
+export function exportPdfUrl() {
+  return "/api/exports/pdf";
 }
 
 /** Vérifie que le backend est accessible. */

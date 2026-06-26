@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Navbar from "./components/layout/Navbar.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
+import ImportHistoryPage from "./pages/ImportHistoryPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import DeplacementsDTPage from "./pages/DeplacementsDTPage.jsx";
 import ActifsLeasingPage from "./pages/ActifsLeasingPage.jsx";
@@ -15,6 +16,7 @@ import BiensImmobilisesPage from "./pages/BiensImmobilisesPage.jsx";
 import DeplacementsProPage from "./pages/DeplacementsProPage.jsx";
 import DechetsPage from "./pages/DechetsPage.jsx";
 import TransportAvalPage from "./pages/TransportAvalPage.jsx";
+import EmissionFactorsPage from "./pages/EmissionFactorsPage.jsx";
 
 function App() {
   return (
@@ -25,6 +27,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/import" element={<ImportPage />} />
+            <Route path="/imports" element={<ImportHistoryPage />} />
             <Route path="/donnees/deplacements-dt" element={<DeplacementsDTPage />} />
             <Route path="/donnees/actifs-leasing" element={<ActifsLeasingPage />} />
             <Route path="/donnees/sous-traitance" element={<SousTraitancePage />} />
@@ -38,6 +41,7 @@ function App() {
             <Route path="/donnees/transport-aval" element={<TransportAvalPage />} />
             <Route path="/dashboard" element={<AffairesPage />} />
             <Route path="/stats" element={<DashboardPage />} />
+            <Route path="/facteurs-emission" element={<EmissionFactorsPage />} />
           </Routes>
         </main>
       </div>

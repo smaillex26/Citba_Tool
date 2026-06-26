@@ -3,6 +3,7 @@ import PageContainer from "../components/layout/PageContainer.jsx";
 import SummaryCard from "../components/dashboard/SummaryCard.jsx";
 import EmissionsBySiteChart from "../components/dashboard/EmissionsBySiteChart.jsx";
 import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
+import { exportExcelUrl, exportPdfUrl } from "../services/api.js";
 import {
   DASHBOARD_EMISSIONS_SERIES,
   loadDashboardEmissions,
@@ -51,7 +52,12 @@ function AffairesPage() {
       description="Synthèse des émissions calculées à partir du dernier fichier Excel importé."
       actions={
         apiGroups
-          ? <span className="data-source-badge data-source-badge--live">Données importées</span>
+          ? (
+            <div className="page-actions">
+              <a href={exportExcelUrl()} className="button button--secondary">Export Excel</a>
+              <a href={exportPdfUrl()} className="button button--primary">Export PDF</a>
+            </div>
+          )
           : <span className="data-source-badge data-source-badge--mock">En attente d'import</span>
       }
     >

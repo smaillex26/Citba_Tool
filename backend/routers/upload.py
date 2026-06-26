@@ -3,6 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
+from services.database import replace_latest_import
 from services.parser import parse_excel, inspect_excel
 
 UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
@@ -86,9 +87,12 @@ def _process(job_id: str, path: Path):
     _jobs[job_id]["status"] = "processing"
     try:
         results = parse_excel(path)
+        summary = _build_summary(results)
+        import_run = replace_latest_import(_jobs[job_id]["filename"], results, summary)
         _jobs[job_id]["status"] = "done"
         _jobs[job_id]["datasets"] = list(results.keys())
-        _jobs[job_id]["summary"] = _build_summary(results)
+        _jobs[job_id]["import_id"] = import_run.id
+        _jobs[job_id]["summary"] = summary
     except Exception as exc:
         _jobs[job_id]["status"] = "error"
         _jobs[job_id]["detail"] = (
