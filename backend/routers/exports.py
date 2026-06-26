@@ -1,4 +1,5 @@
-from io import BytesIO
+import csv
+from io import BytesIO, StringIO
 
 import pandas as pd
 from fastapi import APIRouter, HTTPException
@@ -7,7 +8,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 
-from services.database import get_latest_import_payload, record_export
+from services.database import get_import_payload, get_latest_import_payload, record_export
 
 router = APIRouter(tags=["Exports"])
 
@@ -89,5 +90,40 @@ def export_pdf():
     return StreamingResponse(
         output,
         media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/exports/imports/{import_id}/report")
+def export_import_report(import_id: int):
+    """Exporte un rapport CSV de contrôle pour un import donné."""
+    payload = get_import_payload(import_id)
+    if payload is None:
+        raise HTTPException(status_code=404, detail="Import introuvable pour générer le rapport.")
+
+    text = StringIO()
+    writer = csv.writer(text, delimiter=";")
+    writer.writerow(["CITBA - Rapport d'import"])
+    writer.writerow([])
+    writer.writerow(["Import ID", payload["id"]])
+    writer.writerow(["Fichier", payload["filename"]])
+    writer.writerow(["Date", payload["created_at"]])
+    writer.writerow(["Pages alimentees", payload["summary"].get("dataset_count", 0)])
+    writer.writerow(["Lignes importees", payload["summary"].get("total_rows", 0)])
+    writer.writerow([])
+    writer.writerow(["Dataset", "Libelle", "Lignes"])
+    for item in payload["summary"].get("datasets", []):
+        writer.writerow([
+            item.get("key", ""),
+            item.get("label", item.get("key", "")),
+            item.get("rows", 0),
+        ])
+
+    output = BytesIO(text.getvalue().encode("utf-8-sig"))
+    filename = f"citba_rapport_import_{payload['id']}.csv"
+    record_export(payload["id"], "import_report", filename)
+    return StreamingResponse(
+        output,
+        media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

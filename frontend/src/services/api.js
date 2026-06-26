@@ -157,6 +157,10 @@ export function exportPdfUrl() {
   return "/api/exports/pdf";
 }
 
+export function importReportUrl(importId) {
+  return `/api/exports/imports/${importId}/report`;
+}
+
 export async function getSettings() {
   try {
     return await apiFetch("/settings");

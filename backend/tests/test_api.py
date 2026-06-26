@@ -226,6 +226,11 @@ def test_upload_valid_excel(tmp_path, monkeypatch):
         assert pdf_res.status_code == 200
         assert pdf_res.headers["content-type"].startswith("application/pdf")
 
+        report_res = client.get(f"/api/exports/imports/{body['import_id']}/report")
+        assert report_res.status_code == 200
+        assert report_res.headers["content-type"].startswith("text/csv")
+        assert "Rapport d'import" in report_res.text
+
         delete_res = client.delete(f"/api/imports/{body['import_id']}")
         assert delete_res.status_code == 200
         assert delete_res.json()["deleted"] == body["import_id"]

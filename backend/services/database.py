@@ -269,24 +269,36 @@ def get_latest_import_payload() -> dict | None:
         if import_id is None:
             return None
 
-        import_run = session.get(ImportRun, import_id)
-        rows = session.scalars(
-            select(DatasetRow)
-            .where(DatasetRow.import_id == import_id)
-            .order_by(DatasetRow.dataset, DatasetRow.row_index)
-        ).all()
+        return _get_import_payload(session, import_id)
 
-        datasets: dict[str, list[dict]] = {}
-        for row in rows:
-            datasets.setdefault(row.dataset, []).append(row.payload)
 
-        return {
-            "id": import_run.id,
-            "filename": import_run.filename,
-            "created_at": import_run.created_at,
-            "summary": import_run.summary,
-            "datasets": datasets,
-        }
+def get_import_payload(import_id: int) -> dict | None:
+    with get_session() as session:
+        return _get_import_payload(session, import_id)
+
+
+def _get_import_payload(session: Session, import_id: int) -> dict | None:
+    import_run = session.get(ImportRun, import_id)
+    if import_run is None:
+        return None
+
+    rows = session.scalars(
+        select(DatasetRow)
+        .where(DatasetRow.import_id == import_id)
+        .order_by(DatasetRow.dataset, DatasetRow.row_index)
+    ).all()
+
+    datasets: dict[str, list[dict]] = {}
+    for row in rows:
+        datasets.setdefault(row.dataset, []).append(row.payload)
+
+    return {
+        "id": import_run.id,
+        "filename": import_run.filename,
+        "created_at": import_run.created_at,
+        "summary": import_run.summary,
+        "datasets": datasets,
+    }
 
 
 def record_export(import_id: int | None, export_type: str, filename: str) -> None:

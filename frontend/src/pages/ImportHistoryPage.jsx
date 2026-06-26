@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
 import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
-import { deleteImport, listImports } from "../services/api.js";
+import { deleteImport, importReportUrl, listImports } from "../services/api.js";
 
 function ImportHistoryPage() {
   const [imports, setImports] = useState(null);
@@ -78,9 +78,14 @@ function ImportHistoryPage() {
                           </button>
                         </div>
                       ) : (
-                        <button className="affaire-btn affaire-btn--delete" onClick={() => setConfirmId(item.id)}>
-                          Supprimer
-                        </button>
+                        <div className="inline-actions">
+                          <a className="affaire-btn affaire-btn--view" href={importReportUrl(item.id)}>
+                            Rapport
+                          </a>
+                          <button className="affaire-btn affaire-btn--delete" onClick={() => setConfirmId(item.id)}>
+                            Supprimer
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
