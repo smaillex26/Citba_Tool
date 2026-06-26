@@ -1499,6 +1499,42 @@ select {
   color: var(--green-900);
 }
 
+.import-validation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.import-validation-card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.import-validation-card span {
+  color: var(--slate-500);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.import-validation-card strong {
+  color: var(--green-900);
+  display: block;
+  font-size: 1.25rem;
+}
+
+.import-validation-card p {
+  color: var(--slate-600);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
 .import-summary-list {
   display: grid;
   gap: 8px;

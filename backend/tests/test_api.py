@@ -177,6 +177,9 @@ def _make_excel_bytes(sheet_name: str = "Energie") -> bytes:
     ws.title = sheet_name
     ws.append(["Site", "Energie", "Quantite", "Unite"])
     ws.append(["Arthez", "Eau", 16, "m3"])
+    ignored = wb.create_sheet("Année")
+    ignored.append(["Information", "Valeur"])
+    ignored.append(["Année de reporting", 2026])
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()
@@ -219,6 +222,9 @@ def test_upload_valid_excel(tmp_path, monkeypatch):
     if body["status"] == "done":
         assert body["summary"]["total_rows"] == 1
         assert body["summary"]["datasets"][0]["key"] == "energie"
+        assert body["summary"]["recognized_sheets"][0]["sheet"] == "Energie"
+        assert body["summary"]["recognized_sheets"][0]["dataset"] == "energie"
+        assert body["summary"]["ignored_sheets"][0]["sheet"] == "Année"
 
         excel_res = client.get("/api/exports/excel")
         assert excel_res.status_code == 200

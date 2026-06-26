@@ -86,8 +86,9 @@ def _process(job_id: str, path: Path):
     """Traitement réel : parsing + sauvegarde JSON."""
     _jobs[job_id]["status"] = "processing"
     try:
+        inspection = inspect_excel(path)
         results = parse_excel(path)
-        summary = _build_summary(results)
+        summary = _build_summary(results, inspection)
         import_run = replace_latest_import(_jobs[job_id]["filename"], results, summary)
         _jobs[job_id]["status"] = "done"
         _jobs[job_id]["datasets"] = list(results.keys())
@@ -104,7 +105,7 @@ def _process(job_id: str, path: Path):
         path.unlink(missing_ok=True)
 
 
-def _build_summary(results: dict[str, list]) -> dict:
+def _build_summary(results: dict[str, list], inspection: dict | None = None) -> dict:
     datasets = [
         {
             "key": key,
@@ -113,8 +114,27 @@ def _build_summary(results: dict[str, list]) -> dict:
         }
         for key, rows in results.items()
     ]
+    sheets = inspection.get("sheets", []) if inspection else []
+    recognized_sheets = [
+        {
+            "sheet": item["sheet"],
+            "dataset": item["dataset"],
+            "label": DATASET_LABELS.get(item["dataset"], item["dataset"]),
+            "sites_detected": item.get("sites_detected", []),
+            "columns_recognized": item.get("columns_recognized", []),
+        }
+        for item in sheets
+        if item.get("dataset")
+    ]
+    ignored_sheets = [
+        {"sheet": item["sheet"]}
+        for item in sheets
+        if not item.get("dataset")
+    ]
     return {
         "datasets": datasets,
         "total_rows": sum(item["rows"] for item in datasets),
         "dataset_count": len(datasets),
+        "recognized_sheets": recognized_sheets,
+        "ignored_sheets": ignored_sheets,
     }

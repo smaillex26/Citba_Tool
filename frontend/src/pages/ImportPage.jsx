@@ -69,6 +69,8 @@ function ImportPage() {
             label: DATASET_ROUTES[key].label,
             rows: null,
           })),
+          recognizedSheets: state.summary?.recognized_sheets ?? [],
+          ignoredSheets: state.summary?.ignored_sheets ?? [],
         });
         setStatus("success");
       } else if (state.status === "error") {
@@ -135,6 +137,28 @@ function ImportPage() {
           </div>
           {updatedPages.length > 0 ? (
             <>
+              {(importSummary?.recognizedSheets?.length > 0 || importSummary?.ignoredSheets?.length > 0) && (
+                <div className="import-validation-grid">
+                  <article className="import-validation-card">
+                    <span>Onglets reconnus</span>
+                    <strong>{importSummary?.recognizedSheets?.length ?? 0}</strong>
+                    <p>
+                      {importSummary?.recognizedSheets
+                        ?.map((item) => `${item.sheet} → ${item.label}`)
+                        .join(", ") || "Aucun onglet reconnu"}
+                    </p>
+                  </article>
+                  <article className="import-validation-card">
+                    <span>Onglets ignorés</span>
+                    <strong>{importSummary?.ignoredSheets?.length ?? 0}</strong>
+                    <p>
+                      {importSummary?.ignoredSheets
+                        ?.map((item) => item.sheet)
+                        .join(", ") || "Aucun onglet ignoré"}
+                    </p>
+                  </article>
+                </div>
+              )}
               <p className="import-success__sub">Résumé des pages mises à jour :</p>
               <div className="import-summary-list">
                 {importSummary?.datasets
