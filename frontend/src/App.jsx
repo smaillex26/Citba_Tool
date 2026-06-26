@@ -3,7 +3,6 @@ import Navbar from "./components/layout/Navbar.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
 import ImportHistoryPage from "./pages/ImportHistoryPage.jsx";
-import DashboardPage from "./pages/DashboardPage.jsx";
 import DeplacementsDTPage from "./pages/DeplacementsDTPage.jsx";
 import ActifsLeasingPage from "./pages/ActifsLeasingPage.jsx";
 import SousTraitancePage from "./pages/SousTraitancePage.jsx";
@@ -40,7 +39,6 @@ function App() {
             <Route path="/donnees/dechets" element={<DechetsPage />} />
             <Route path="/donnees/transport-aval" element={<TransportAvalPage />} />
             <Route path="/dashboard" element={<AffairesPage />} />
-            <Route path="/stats" element={<DashboardPage />} />
             <Route path="/facteurs-emission" element={<EmissionFactorsPage />} />
           </Routes>
         </main>
