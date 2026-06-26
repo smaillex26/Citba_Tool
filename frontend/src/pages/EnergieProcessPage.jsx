@@ -6,6 +6,7 @@ import BarChart from "../components/dashboard/BarChart.jsx";
 import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
 import { energieProcessColumns } from "../data/energieProcessData.js";
 import { getDataset } from "../services/api.js";
+import { formatCalculationTrace } from "../utils/calculationTrace.js";
 
 const SCOPE_COLORS = { "1": "#ef4444", "2": "#3b82f6", "3 amont": "#f59e0b" };
 const SITE_COLORS  = { Arthez: "#059669", Palplast: "#3b82f6", Pontonx: "#f59e0b", Infautelec: "#8b5cf6" };
@@ -84,13 +85,16 @@ function EnergieProcessPage() {
 
   /* Colonnes avec fonctions de formatage pour GroupedDataTable */
   const tableColumns = useMemo(() =>
-    energieProcessColumns.map((col) => {
+    [
+      ...energieProcessColumns.map((col) => {
       if (col.key === "quantite")
         return { ...col, format: (v) => (v ?? 0).toLocaleString("fr-FR") };
       if (col.key === "feKgCO2eUnite")
         return { ...col, format: (v) => v };
       return col;
-    }),
+      }),
+      { key: "calculationTrace", label: "Traçabilité calcul", format: (_, row) => formatCalculationTrace(row) },
+    ],
   []);
 
   return (

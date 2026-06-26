@@ -6,6 +6,7 @@ import BarChart from "../components/dashboard/BarChart.jsx";
 import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
 import { climColumns } from "../data/climData.js";
 import { getDataset } from "../services/api.js";
+import { formatCalculationTrace } from "../utils/calculationTrace.js";
 
 const SITE_COLORS = {
   Arthez: "#059669",
@@ -50,6 +51,17 @@ function ClimPage() {
   const totalKgCO2e = useMemo(
     () => filtered.reduce((sum, row) => sum + Number(row.kgCO2e ?? 0), 0),
     [filtered],
+  );
+  const displayRows = useMemo(
+    () => filtered.map((row) => ({
+      ...row,
+      calculationTrace: formatCalculationTrace(row),
+    })),
+    [filtered],
+  );
+  const tableColumns = useMemo(
+    () => [...climColumns, { key: "calculationTrace", label: "Traçabilité calcul" }],
+    [],
   );
 
   const chartBySite = useMemo(
@@ -114,7 +126,7 @@ function ClimPage() {
             </select>
           </div>
 
-          <DataTable columns={climColumns} rows={filtered} />
+          <DataTable columns={tableColumns} rows={displayRows} />
 
           <BarChart title="Émissions Clim par site" items={chartBySite} />
         </>

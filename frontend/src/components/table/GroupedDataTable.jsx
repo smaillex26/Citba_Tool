@@ -59,7 +59,7 @@ function GroupedDataTable({ columns, rows, groupKey, sumKey, pctKey }) {
       const pct = groupTotal > 0 ? ((row[sumKey] ?? 0) / groupTotal) * 100 : 0;
       return `${pct.toFixed(2)} %`;
     }
-    if (col.format) return col.format(row[col.key]);
+    if (col.format) return col.format(row[col.key], row);
     return row[col.key] ?? "";
   }
 
