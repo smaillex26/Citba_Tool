@@ -19,8 +19,8 @@ function HomePage() {
             <Link to="/import" className="home-btn home-btn--fill">
               Importer un fichier
             </Link>
-            <Link to="/donnees/collecte" className="home-btn home-btn--outline">
-              Consulter les donnees
+            <Link to="/donnees/achats-biens" className="home-btn home-btn--outline">
+              Consulter les données
             </Link>
           </div>
         </div>
@@ -28,18 +28,18 @@ function HomePage() {
           <div className="home-hero__card">
             <div className="home-hero__card-row">
               <span className="home-hero__dot home-hero__dot--green" />
-              <span>Fichier importe</span>
-              <strong>export_wavesoft.xlsx</strong>
+              <span>Import Excel</span>
+              <strong>Automatique</strong>
             </div>
             <div className="home-hero__card-row">
               <span className="home-hero__dot home-hero__dot--blue" />
-              <span>Lignes traitees</span>
-              <strong>1 247</strong>
+              <span>Données traitées</span>
+              <strong>Par onglet</strong>
             </div>
             <div className="home-hero__card-row">
               <span className="home-hero__dot home-hero__dot--amber" />
-              <span>Tonnage total</span>
-              <strong>84.3 t</strong>
+              <span>Analyse carbone</span>
+              <strong>Par site</strong>
             </div>
           </div>
         </div>
@@ -49,12 +49,12 @@ function HomePage() {
       <section className="home-bar">
         <div className="home-bar__item">
           <strong>4</strong>
-          <span>Tableaux de collecte</span>
+          <span>Pages de données</span>
         </div>
         <div className="home-bar__sep" />
         <div className="home-bar__item">
           <strong>11+</strong>
-          <span>Colonnes analysees</span>
+          <span>Colonnes analysées</span>
         </div>
         <div className="home-bar__sep" />
         <div className="home-bar__item">
@@ -89,8 +89,8 @@ function HomePage() {
             <div className="home-svc__icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
             </div>
-            <h3>Tableaux de collecte</h3>
-            <p>Recherchez, triez et filtrez vos données par famille, fournisseur, pays ou unité.</p>
+            <h3>Pages de données</h3>
+            <p>Recherchez, triez et filtrez les données importées depuis les onglets du fichier Excel.</p>
           </article>
 
           <article className="home-svc">

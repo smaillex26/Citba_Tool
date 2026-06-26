@@ -3,10 +3,8 @@ import PageContainer from "../components/layout/PageContainer.jsx";
 import GroupedDataTable from "../components/table/GroupedDataTable.jsx";
 import SummaryCard from "../components/dashboard/SummaryCard.jsx";
 import BarChart from "../components/dashboard/BarChart.jsx";
-import {
-  energieProcessRows  as mockRows,
-  energieProcessColumns,
-} from "../data/energieProcessData.js";
+import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
+import { energieProcessColumns } from "../data/energieProcessData.js";
 import { getDataset } from "../services/api.js";
 
 const SCOPE_COLORS = { "1": "#ef4444", "2": "#3b82f6", "3 amont": "#f59e0b" };
@@ -24,7 +22,6 @@ function unique(rows, key) {
 
 function EnergieProcessPage() {
   const [apiRows,  setApiRows]  = useState(null);
-  const [dataSource, setDataSource] = useState("mock");
 
   const [siteFilter,      setSiteFilter]      = useState("");
   const [scopeFilter,     setScopeFilter]     = useState("");
@@ -35,12 +32,11 @@ function EnergieProcessPage() {
     getDataset("energie").then((data) => {
       if (Array.isArray(data) && data.length > 0) {
         setApiRows(data);
-        setDataSource("api");
       }
     });
   }, []);
 
-  const rows = apiRows ?? mockRows;
+  const rows = apiRows ?? [];
 
   /* Listes de filtres dérivées dynamiquement */
   const SITES      = useMemo(() => unique(rows, "site"),              [rows]);
@@ -102,11 +98,15 @@ function EnergieProcessPage() {
       title="Énergie et Process"
       description="Consommations énergétiques et procédés des 4 sites. Calcul des émissions (kg CO2e) par type de fluide, scope et catégorie — source Base Carbone ADEME."
       actions={
-        dataSource === "api"
+        apiRows
           ? <span className="data-source-badge data-source-badge--live">Données importées</span>
-          : <span className="data-source-badge data-source-badge--mock">Données de démonstration</span>
+          : <span className="data-source-badge data-source-badge--mock">En attente d'import</span>
       }
     >
+      {!apiRows ? (
+        <ImportRequiredState message="Importez le fichier Excel pour analyser les données énergie et process." />
+      ) : (
+        <>
       {/* Cartes résumé */}
       <div className="summary-grid">
         <SummaryCard label="Total kg CO2e"  value={fmtKg(totalKgCO2e)} helper="Toutes énergies confondues"    accent="green" />
@@ -180,6 +180,8 @@ function EnergieProcessPage() {
         <BarChart title="Émissions par scope (kg CO2e)" items={chartByScope} />
       </div>
       <BarChart title="Top 10 — Émissions par type d'énergie (kg CO2e)" items={chartByEnergie} />
+        </>
+      )}
     </PageContainer>
   );
 }

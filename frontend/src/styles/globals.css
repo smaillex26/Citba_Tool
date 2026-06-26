@@ -1468,6 +1468,62 @@ select {
   margin: 0 0 16px;
 }
 
+.import-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.import-summary-card {
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.import-summary-card span,
+.import-summary-row span {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--slate-500);
+  margin-bottom: 4px;
+}
+
+.import-summary-card strong {
+  font-size: 1rem;
+  color: var(--green-900);
+}
+
+.import-summary-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.import-summary-row {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #dcfce7;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.import-summary-row:hover {
+  border-color: var(--emerald-600);
+}
+
+.import-summary-row strong {
+  white-space: nowrap;
+  color: var(--emerald-700);
+}
+
 .import-success__links {
   display: flex;
   flex-wrap: wrap;
@@ -1509,6 +1565,265 @@ select {
 .data-source-badge--mock {
   background: #fef9c3;
   color: #92400e;
+}
+
+/* ===== STACKED BAR CHART ===== */
+
+.emissions-site-chart {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px 16px;
+}
+
+.emissions-site-chart__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.emissions-site-chart__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.emissions-site-chart__subtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.emissions-site-chart__select {
+  min-width: 180px;
+}
+
+.emissions-site-chart__plot {
+  min-height: 260px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 18px;
+  align-items: end;
+  padding-top: 8px;
+}
+
+.emissions-site-chart__bar-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.emissions-site-chart__value {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.emissions-site-chart__bar-track {
+  width: 100%;
+  max-width: 52px;
+  height: 170px;
+  background: #f1f5f9;
+  border-radius: 8px 8px 3px 3px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.emissions-site-chart__bar {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 8px 8px 0 0;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.emissions-site-chart__bar:hover {
+  opacity: 0.85;
+  transform: scaleX(1.04);
+}
+
+.emissions-site-chart__label {
+  max-width: 100px;
+  min-height: 32px;
+  font-size: 0.68rem;
+  color: #374151;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.emissions-site-chart__unit {
+  margin: 12px 0 0;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  text-align: right;
+}
+
+.stacked-bar-chart {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px 16px;
+}
+
+.stacked-bar-chart__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 20px;
+}
+
+.stacked-bar-chart__body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* Légende */
+.stacked-bar-chart__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 190px;
+  flex-shrink: 0;
+}
+
+.stacked-bar-chart__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stacked-bar-chart__legend-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stacked-bar-chart__legend-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.stacked-bar-chart__legend-label {
+  font-size: 0.72rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.stacked-bar-chart__legend-total {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* Zone de tracé */
+.stacked-bar-chart__plot {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  min-height: 220px;
+}
+
+/* Axe Y */
+.stacked-bar-chart__yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 42px;
+  width: 48px;
+  flex-shrink: 0;
+}
+
+.stacked-bar-chart__ytick {
+  font-size: 0.68rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+/* Barres */
+.stacked-bar-chart__bars-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 42px;
+}
+
+.stacked-bar-chart__gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #f1f5f9;
+  pointer-events: none;
+}
+
+.stacked-bar-chart__bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.stacked-bar-chart__bar-stack {
+  width: 100%;
+  max-width: 56px;
+  height: 180px;
+  display: flex;
+  flex-direction: column-reverse;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.stacked-bar-chart__segment {
+  width: 100%;
+  transition: opacity 0.15s;
+  min-height: 1px;
+}
+
+.stacked-bar-chart__segment:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.stacked-bar-chart__bar-total {
+  font-size: 0.65rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.stacked-bar-chart__bar-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.stacked-bar-chart__unit {
+  margin: 10px 0 0;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  text-align: right;
 }
 
 /* ===== RESPONSIVE ===== */

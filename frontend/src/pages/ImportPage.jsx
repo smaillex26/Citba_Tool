@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageContainer from "../components/layout/PageContainer.jsx";
 import UploadZone from "../components/import/UploadZone.jsx";
@@ -7,6 +7,7 @@ import { uploadExcelFile, getUploadStatus } from "../services/api.js";
 
 const DATASET_ROUTES = {
   energie:           { label: "Énergie et Process",           route: "/donnees/energie-process" },
+  clim:              { label: "Clim",                         route: "/donnees/clim" },
   achats_biens:      { label: "Achats de biens",               route: "/donnees/achats-biens" },
   achats_services:   { label: "Achats de services",            route: "/donnees/achats-services" },
   biens_immobilises: { label: "Biens immobilisés",             route: "/donnees/biens-immobilises" },
@@ -23,6 +24,7 @@ function ImportPage() {
   const [status,      setStatus]      = useState("idle");
   const [message,     setMessage]     = useState("");
   const [updatedPages, setUpdatedPages] = useState([]);
+  const [importSummary, setImportSummary] = useState(null);
   const jobIdRef = useRef(null);
   const pollRef  = useRef(null);
   const navigate = useNavigate();
@@ -30,17 +32,18 @@ function ImportPage() {
   /* Nettoyage du polling à la destruction */
   useEffect(() => () => clearInterval(pollRef.current), []);
 
-  async function handleProcess() {
+  const handleProcess = useCallback(async () => {
     if (!file) return;
     setStatus("uploading");
     setMessage("");
+    setImportSummary(null);
+    setUpdatedPages([]);
 
     const result = await uploadExcelFile(file);
 
-    /* Backend non disponible → mode démo */
     if (!result?.job_id) {
-      setMessage(result?.message ?? "Backend non connecté. Mode démonstration.");
-      setStatus("demo");
+      setMessage(result?.message ?? "Backend non connecté. Lancez le serveur puis relancez l'import.");
+      setStatus("error");
       return;
     }
 
@@ -54,10 +57,19 @@ function ImportPage() {
 
       if (state.status === "done") {
         clearInterval(pollRef.current);
-        const pages = Object.keys(DATASET_ROUTES).filter(
-          (k) => state.datasets?.includes(k)
-        );
+        const importedDatasets = state.summary?.datasets?.map((item) => item.key) ?? state.datasets ?? [];
+        const pages = Object.keys(DATASET_ROUTES).filter((k) => importedDatasets.includes(k));
         setUpdatedPages(pages);
+        setImportSummary({
+          filename: state.filename,
+          datasetCount: state.summary?.dataset_count ?? pages.length,
+          totalRows: state.summary?.total_rows ?? 0,
+          datasets: state.summary?.datasets ?? pages.map((key) => ({
+            key,
+            label: DATASET_ROUTES[key].label,
+            rows: null,
+          })),
+        });
         setStatus("success");
       } else if (state.status === "error") {
         clearInterval(pollRef.current);
@@ -65,7 +77,17 @@ function ImportPage() {
         setStatus("error");
       }
     }, 1000);
-  }
+  }, [file]);
+
+  /* Dès qu'un fichier est déposé/sélectionné, on lance l'analyse backend. */
+  useEffect(() => {
+    if (file && status === "idle") {
+      const timer = window.setTimeout(() => {
+        handleProcess();
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [file, status, handleProcess]);
 
   const isLoading = status === "uploading" || status === "processing";
 
@@ -75,13 +97,6 @@ function ImportPage() {
       description="Déposez un fichier Excel puis lancez le traitement pour alimenter les tableaux de données."
     >
       <UploadZone onFileSelected={setFile} status={isLoading ? "loading" : status} />
-
-      {/* Bouton lancement */}
-      {file && status === "idle" && (
-        <div className="import-actions">
-          <Button onClick={handleProcess}>Lancer le traitement</Button>
-        </div>
-      )}
 
       {/* État en cours */}
       {isLoading && (
@@ -100,23 +115,46 @@ function ImportPage() {
         </div>
       )}
 
-      {/* Mode démo (backend off) */}
-      {status === "demo" && (
-        <div className="import-actions">
-          <p className="import-status-msg">{message}</p>
-          <Button onClick={() => navigate("/donnees/energie-process")}>
-            Voir les données de démonstration
-          </Button>
-        </div>
-      )}
-
       {/* Succès */}
       {status === "success" && (
         <div className="import-success">
-          <p className="import-success__title">Traitement terminé ✓</p>
+          <p className="import-success__title">Import terminé</p>
+          <div className="import-summary-grid">
+            <article className="import-summary-card">
+              <span>Fichier analysé</span>
+              <strong>{importSummary?.filename ?? file?.name ?? "Fichier Excel"}</strong>
+            </article>
+            <article className="import-summary-card">
+              <span>Pages alimentées</span>
+              <strong>{importSummary?.datasetCount ?? updatedPages.length}</strong>
+            </article>
+            <article className="import-summary-card">
+              <span>Lignes importées</span>
+              <strong>{(importSummary?.totalRows ?? 0).toLocaleString("fr-FR")}</strong>
+            </article>
+          </div>
           {updatedPages.length > 0 ? (
             <>
-              <p className="import-success__sub">Pages mises à jour :</p>
+              <p className="import-success__sub">Résumé des pages mises à jour :</p>
+              <div className="import-summary-list">
+                {importSummary?.datasets
+                  ?.filter((item) => DATASET_ROUTES[item.key])
+                  .map((item) => (
+                    <button
+                      key={item.key}
+                      className="import-summary-row"
+                      type="button"
+                      onClick={() => navigate(DATASET_ROUTES[item.key].route)}
+                    >
+                      <span>{item.label ?? DATASET_ROUTES[item.key].label}</span>
+                      <strong>
+                        {item.rows === null || item.rows === undefined
+                          ? "Voir"
+                          : `${item.rows.toLocaleString("fr-FR")} lignes`}
+                      </strong>
+                    </button>
+                  ))}
+              </div>
               <div className="import-success__links">
                 {updatedPages.map((key) => (
                   <Button key={key} onClick={() => navigate(DATASET_ROUTES[key].route)}>
@@ -127,10 +165,10 @@ function ImportPage() {
             </>
           ) : (
             <p className="import-success__sub">
-              Aucun onglet reconnu dans ce fichier.
+              Aucun onglet reconnu dans ce fichier. Vérifiez que le fichier correspond au modèle CITBA attendu.
             </p>
           )}
-          <button className="import-reset-btn" onClick={() => { setFile(null); setStatus("idle"); setUpdatedPages([]); }}>
+          <button className="import-reset-btn" onClick={() => { setFile(null); setStatus("idle"); setUpdatedPages([]); setImportSummary(null); }}>
             Importer un autre fichier
           </button>
         </div>
@@ -145,7 +183,7 @@ function ImportPage() {
           </article>
           <article className="info-card">
             <h3>Étape 2</h3>
-            <p>Lancer le traitement — chaque onglet reconnu alimente une page de données.</p>
+            <p>Le traitement se lance automatiquement dès que le fichier est déposé.</p>
           </article>
           <article className="info-card">
             <h3>Étape 3</h3>

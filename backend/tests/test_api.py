@@ -51,6 +51,19 @@ def test_data_valid_dataset_with_file(tmp_path, monkeypatch):
     assert res.json() == sample
 
 
+def test_data_clim_dataset_with_file(tmp_path, monkeypatch):
+    """Le dataset Clim est exposé comme un endpoint de données standard."""
+    import routers.data as data_router
+    monkeypatch.setattr(data_router, "DATA_DIR", tmp_path)
+
+    sample = [{"id": 1, "site": "Arthez", "energie": "Climatiseur", "kgCO2e": 6264}]
+    (tmp_path / "clim.json").write_text(json.dumps(sample), encoding="utf-8")
+
+    res = client.get("/api/data/clim")
+    assert res.status_code == 200
+    assert res.json() == sample
+
+
 def test_list_available_datasets(tmp_path, monkeypatch):
     """La route /api/data liste correctement les datasets présents."""
     import routers.data as data_router
@@ -86,6 +99,7 @@ def test_upload_wrong_extension():
         files={"file": ("data.csv", b"col1,col2\n1,2", "text/csv")},
     )
     assert res.status_code == 400
+    assert "Excel" in res.json()["detail"]
 
 
 def test_upload_valid_excel(tmp_path, monkeypatch):
@@ -111,7 +125,11 @@ def test_upload_valid_excel(tmp_path, monkeypatch):
     # BackgroundTasks de façon synchrone)
     status_res = client.get(f"/api/upload/status/{job_id}")
     assert status_res.status_code == 200
-    assert status_res.json()["status"] in ("done", "processing", "pending")
+    body = status_res.json()
+    assert body["status"] in ("done", "processing", "pending")
+    if body["status"] == "done":
+        assert body["summary"]["total_rows"] == 1
+        assert body["summary"]["datasets"][0]["key"] == "energie"
 
 
 def test_upload_status_unknown_job():

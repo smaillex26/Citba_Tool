@@ -14,22 +14,41 @@ router = APIRouter(tags=["Upload"])
 _jobs: dict[str, dict] = {}
 
 
+DATASET_LABELS = {
+    "energie": "Énergie et Process",
+    "clim": "Clim",
+    "achats_biens": "Achats de biens",
+    "achats_services": "Achats de services",
+    "biens_immobilises": "Biens immobilisés",
+    "deplacements_pro": "Déplacements professionnels",
+    "dechets": "Déchets",
+    "transport_aval": "Transport aval & Fin de vie",
+    "sous_traitance": "Sous-traitance",
+    "deplacements_dt": "Déplacements domicile-travail",
+    "actifs_leasing": "Actifs en leasing",
+}
+
+
 @router.post("/upload")
 async def upload_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
 ):
     """Reçoit un fichier Excel et lance le traitement en arrière-plan."""
-    if not file.filename.endswith((".xlsx", ".xls")):
-        raise HTTPException(status_code=400, detail="Seuls les fichiers Excel (.xlsx/.xls) sont acceptés.")
+    filename = file.filename or ""
+    if not filename.lower().endswith((".xlsx", ".xls")):
+        raise HTTPException(
+            status_code=400,
+            detail="Format non supporté : importez un fichier Excel .xlsx ou .xls.",
+        )
 
     job_id = str(uuid.uuid4())
-    dest = UPLOAD_DIR / f"{job_id}_{file.filename}"
+    dest = UPLOAD_DIR / f"{job_id}_{filename}"
 
     with dest.open("wb") as buf:
         shutil.copyfileobj(file.file, buf)
 
-    _jobs[job_id] = {"status": "pending", "filename": file.filename}
+    _jobs[job_id] = {"status": "pending", "filename": filename}
     background_tasks.add_task(_process, job_id, dest)
 
     return {"job_id": job_id, "status": "pending"}
@@ -69,6 +88,29 @@ def _process(job_id: str, path: Path):
         results = parse_excel(path)
         _jobs[job_id]["status"] = "done"
         _jobs[job_id]["datasets"] = list(results.keys())
+        _jobs[job_id]["summary"] = _build_summary(results)
     except Exception as exc:
         _jobs[job_id]["status"] = "error"
-        _jobs[job_id]["detail"] = str(exc)
+        _jobs[job_id]["detail"] = (
+            "Impossible d'analyser ce fichier Excel. Vérifiez qu'il respecte "
+            "la structure attendue puis réessayez."
+        )
+        _jobs[job_id]["technical_detail"] = str(exc)
+    finally:
+        path.unlink(missing_ok=True)
+
+
+def _build_summary(results: dict[str, list]) -> dict:
+    datasets = [
+        {
+            "key": key,
+            "label": DATASET_LABELS.get(key, key),
+            "rows": len(rows),
+        }
+        for key, rows in results.items()
+    ]
+    return {
+        "datasets": datasets,
+        "total_rows": sum(item["rows"] for item in datasets),
+        "dataset_count": len(datasets),
+    }

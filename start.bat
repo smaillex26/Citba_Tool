@@ -21,8 +21,8 @@ if not exist ".venv\Scripts\activate.bat" (
     call .venv\Scripts\activate.bat
 )
 
-start "Backend FastAPI" cmd /k "uvicorn main:app --host 127.0.0.1 --port 8000 --reload"
-echo    Backend lance sur http://localhost:8000
+start "Backend FastAPI" cmd /k "uvicorn main:app --host 127.0.0.1 --port 8001 --reload"
+echo    Backend lance sur http://localhost:8001
 echo.
 
 REM --- Frontend React ---

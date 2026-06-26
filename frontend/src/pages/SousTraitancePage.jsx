@@ -1,77 +1,75 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
 import DataTable from "../components/table/DataTable.jsx";
-import SummaryCard from "../components/dashboard/SummaryCard.jsx";
-import BarChart from "../components/dashboard/BarChart.jsx";
-import {
-  sousTraitanceColumns,
-  sousTraitanceRows,
-  sousTraitanceStats,
-  chartBySociete,
-  chartByPrestation,
-} from "../data/sousTraitanceData.js";
+import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
+import { sousTraitanceColumns } from "../data/sousTraitanceData.js";
+import { getDataset } from "../services/api.js";
 
 function uniqueValues(rows, key) {
-  return [...new Set(rows.map((r) => r[key]))].sort();
+  return [...new Set(rows.map((r) => r[key]).filter(Boolean))].sort();
 }
 
 function SousTraitancePage() {
+  const [apiRows, setApiRows] = useState(null);
+  const [siteFilter, setSiteFilter] = useState("");
   const [societeFilter, setSocieteFilter] = useState("");
-  const [prestationFilter, setPrestationFilter] = useState("");
 
-  const societes = useMemo(() => uniqueValues(sousTraitanceRows, "societe"), []);
-  const prestations = useMemo(() => uniqueValues(sousTraitanceRows, "typePrestation"), []);
+  useEffect(() => {
+    getDataset("sous_traitance").then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setApiRows(data);
+      }
+    });
+  }, []);
+
+  const rows    = apiRows ?? [];
+  const sites   = useMemo(() => uniqueValues(rows, "site"),    [rows]);
+  const societes= useMemo(() => uniqueValues(rows, "societe"), [rows]);
 
   const filtered = useMemo(() => {
-    let data = sousTraitanceRows;
-    if (societeFilter) data = data.filter((r) => r.societe === societeFilter);
-    if (prestationFilter) data = data.filter((r) => r.typePrestation === prestationFilter);
-    return data;
-  }, [societeFilter, prestationFilter]);
+    let d = rows;
+    if (siteFilter)    d = d.filter((r) => r.site    === siteFilter);
+    if (societeFilter) d = d.filter((r) => r.societe === societeFilter);
+    return d;
+  }, [rows, siteFilter, societeFilter]);
 
   const totalMontant = useMemo(
-    () => filtered.reduce((s, r) => s + r.montantEuro, 0).toLocaleString("fr-FR"),
+    () => filtered.reduce((s, r) => s + (r.montantEuro ?? 0), 0).toLocaleString("fr-FR"),
     [filtered],
   );
 
   return (
     <PageContainer
       title="Sous-traitance"
-      description="Prestations réalisées par des sous-traitants externes. Ces données alimenteront le calcul des achats de services (scope 3)."
+      description="Prestations réalisées par des sous-traitants externes. Scope 3 amont — catégorie 1."
+      actions={
+        apiRows
+          ? <span className="data-source-badge data-source-badge--live">Données importées</span>
+          : <span className="data-source-badge data-source-badge--mock">En attente d'import</span>
+      }
     >
-      <div className="summary-grid">
-        {sousTraitanceStats.map((card) => (
-          <SummaryCard
-            key={card.id}
-            label={card.label}
-            value={card.value}
-            helper={card.helper}
-            accent={card.accent}
-          />
-        ))}
-      </div>
+      {!apiRows ? (
+        <ImportRequiredState message="Importez le fichier Excel pour analyser la sous-traitance." />
+      ) : (
+        <>
 
       <div className="filter-bar">
+        <select
+          value={siteFilter}
+          onChange={(e) => setSiteFilter(e.target.value)}
+          className="filter-select"
+        >
+          <option value="">Tous les sites</option>
+          {sites.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+
         <select
           value={societeFilter}
           onChange={(e) => setSocieteFilter(e.target.value)}
           className="filter-select"
         >
           <option value="">Toutes les sociétés</option>
-          {societes.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-
-        <select
-          value={prestationFilter}
-          onChange={(e) => setPrestationFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Toutes les prestations</option>
-          {prestations.map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
+          {societes.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
@@ -92,10 +90,8 @@ function SousTraitancePage() {
 
       <DataTable columns={sousTraitanceColumns} rows={filtered} />
 
-      <div className="charts-grid">
-        <BarChart title="Montant par sous-traitant" items={chartBySociete} />
-        <BarChart title="Montant par type de prestation" items={chartByPrestation} />
-      </div>
+        </>
+      )}
     </PageContainer>
   );
 }

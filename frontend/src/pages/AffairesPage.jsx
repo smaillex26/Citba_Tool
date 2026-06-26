@@ -1,163 +1,78 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
-import { INITIAL_AFFAIRES } from "../data/affairesData.js";
+import SummaryCard from "../components/dashboard/SummaryCard.jsx";
+import EmissionsBySiteChart from "../components/dashboard/EmissionsBySiteChart.jsx";
+import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
+import {
+  DASHBOARD_EMISSIONS_SERIES,
+  loadDashboardEmissions,
+} from "../utils/dashboardEmissions.js";
 
-const STATUT_COLOR = {
-  "En cours": { bg: "#dcfce7", text: "#15803d" },
-  "Terminé":  { bg: "#f1f5f9", text: "#64748b" },
-};
+function fmtKg(v) {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)} Mt CO2e`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)} t CO2e`;
+  return `${v.toFixed(0)} kg CO2e`;
+}
 
 function AffairesPage() {
-  const [affaires, setAffaires] = useState(INITIAL_AFFAIRES);
-  const [confirmId, setConfirmId] = useState(null);
-  const [filtreStatut, setFiltreStatut] = useState("");
+  const [apiGroups, setApiGroups] = useState(null);
 
-  function handleDelete(id) {
-    setAffaires((prev) => prev.filter((a) => a.id !== id));
-    setConfirmId(null);
-  }
+  useEffect(() => {
+    loadDashboardEmissions().then((groups) => {
+      if (Array.isArray(groups) && groups.length > 0) setApiGroups(groups);
+    });
+  }, []);
 
-  const filtered = filtreStatut
-    ? affaires.filter((a) => a.statut === filtreStatut)
-    : affaires;
-
-  const enCours = affaires.filter((a) => a.statut === "En cours").length;
-  const termines = affaires.filter((a) => a.statut === "Terminé").length;
+  const groups = apiGroups ?? [];
+  const totalKgCO2e = useMemo(
+    () => groups.reduce(
+      (sum, group) => sum + group.values.reduce((groupSum, value) => groupSum + value, 0),
+      0,
+    ),
+    [groups],
+  );
+  const sitesWithData = useMemo(
+    () => groups.filter((group) => group.values.some((value) => value > 0)).length,
+    [groups],
+  );
+  const categoriesWithData = useMemo(() => {
+    const active = new Set();
+    groups.forEach((group) => {
+      group.values.forEach((value, index) => {
+        if (value > 0) active.add(DASHBOARD_EMISSIONS_SERIES[index].key);
+      });
+    });
+    return active.size;
+  }, [groups]);
 
   return (
     <PageContainer
-      title="Tableau de bord — Affaires"
-      description="Retrouvez toutes vos affaires classées par numéro. Supprimez une affaire une fois son traitement terminé."
+      title="Tableau de bord"
+      description="Synthèse des émissions calculées à partir du dernier fichier Excel importé."
+      actions={
+        apiGroups
+          ? <span className="data-source-badge data-source-badge--live">Données importées</span>
+          : <span className="data-source-badge data-source-badge--mock">En attente d'import</span>
+      }
     >
-      {/* Stats */}
-      <div className="stats-row">
-        <article className="stat-pill">
-          <span>Total affaires</span>
-          <strong>{affaires.length}</strong>
-        </article>
-        <article className="stat-pill">
-          <span>En cours</span>
-          <strong style={{ color: "#15803d" }}>{enCours}</strong>
-        </article>
-        <article className="stat-pill">
-          <span>Terminées</span>
-          <strong style={{ color: "#64748b" }}>{termines}</strong>
-        </article>
-      </div>
+      {!apiGroups ? (
+        <ImportRequiredState message="Importez le fichier Excel pour lancer l'analyse carbone." />
+      ) : (
+        <>
+          <div className="summary-grid">
+            <SummaryCard label="Total CO2e" value={fmtKg(totalKgCO2e)} helper="Toutes catégories importées" accent="green" />
+            <SummaryCard label="Sites avec données" value={String(sitesWithData)} helper="Sur les 4 sites suivis" accent="blue" />
+            <SummaryCard label="Catégories actives" value={String(categoriesWithData)} helper="Postes avec émissions calculées" accent="amber" />
+          </div>
 
-      {/* Filtres */}
-      <div className="filter-bar">
-        <select
-          className="filter-select"
-          value={filtreStatut}
-          onChange={(e) => setFiltreStatut(e.target.value)}
-        >
-          <option value="">Tous les statuts</option>
-          <option value="En cours">En cours</option>
-          <option value="Terminé">Terminé</option>
-        </select>
-      </div>
-
-      {/* Liste */}
-      <div className="affaires-list">
-        {filtered.length === 0 && (
-          <p className="affaires-empty">Aucune affaire à afficher.</p>
-        )}
-
-        {filtered.map((affaire) => {
-          const colors = STATUT_COLOR[affaire.statut] || STATUT_COLOR["En cours"];
-          return (
-            <article key={affaire.id} className="affaire-card">
-              <div className="affaire-card__left">
-                <div className="affaire-card__id">{affaire.id}</div>
-                <div className="affaire-card__body">
-                  <h3>{affaire.titre}</h3>
-                  <p>{affaire.description}</p>
-                  <div className="affaire-card__tags">
-                    {affaire.categories.map((c) => (
-                      <span key={c} className="affaire-tag">{c}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="affaire-card__right">
-                <div className="affaire-card__meta">
-                  <div className="affaire-meta-item">
-                    <span>Fichier</span>
-                    <strong>{affaire.fichierSource}</strong>
-                  </div>
-                  <div className="affaire-meta-item">
-                    <span>Lignes</span>
-                    <strong>{affaire.lignes.toLocaleString("fr-FR")}</strong>
-                  </div>
-                  {affaire.tonnageTotal > 0 && (
-                    <div className="affaire-meta-item">
-                      <span>Tonnage</span>
-                      <strong>{affaire.tonnageTotal} t</strong>
-                    </div>
-                  )}
-                  <div className="affaire-meta-item">
-                    <span>Cree le</span>
-                    <strong>
-                      {new Date(affaire.dateCreation).toLocaleDateString("fr-FR")}
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="affaire-card__actions">
-                  <span
-                    className="affaire-statut"
-                    style={{ background: colors.bg, color: colors.text }}
-                  >
-                    {affaire.statut}
-                  </span>
-
-                  <Link
-                    to={`/dashboard/${affaire.id}`}
-                    className="affaire-btn affaire-btn--view"
-                  >
-                    Voir le détail
-                  </Link>
-
-                  {confirmId === affaire.id ? (
-                    <div className="affaire-confirm">
-                      <span>Confirmer la suppression ?</span>
-                      <button
-                        className="affaire-btn affaire-btn--danger"
-                        onClick={() => handleDelete(affaire.id)}
-                      >
-                        Supprimer
-                      </button>
-                      <button
-                        className="affaire-btn affaire-btn--cancel"
-                        onClick={() => setConfirmId(null)}
-                      >
-                        Annuler
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      className="affaire-btn affaire-btn--delete"
-                      onClick={() => setConfirmId(affaire.id)}
-                      title="Supprimer cette affaire"
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6l-1 14H6L5 6" />
-                        <path d="M10 11v6M14 11v6" />
-                        <path d="M9 6V4h6v2" />
-                      </svg>
-                      Supprimer
-                    </button>
-                  )}
-                </div>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+          <EmissionsBySiteChart
+            title="Émissions CO2e par catégorie"
+            series={DASHBOARD_EMISSIONS_SERIES}
+            groups={groups}
+            unit="kg CO2e"
+          />
+        </>
+      )}
     </PageContainer>
   );
 }

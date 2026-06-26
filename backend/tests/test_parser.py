@@ -255,3 +255,96 @@ def test_parse_site_au_dessus_du_tableau(tmp_path, monkeypatch):
 
     arthez_eau = next(r for r in rows if r["site"] == "Arthez" and r["energie"] == "Eau")
     assert arthez_eau["kgCO2e"] == pytest.approx(16 * 0.13, rel=1e-3)
+
+
+def test_parse_tous_les_onglets_metier_importants(tmp_path, monkeypatch):
+    """Chaque onglet métier attendu doit alimenter son dataset dédié."""
+    import services.parser as parser_mod
+    monkeypatch.setattr(parser_mod, "DATA_DIR", tmp_path)
+
+    clim_row = [None] * 17
+    clim_row[0] = "Climatiseur R410A"
+    clim_row[9] = 3
+    clim_row[11] = "R410A"
+    clim_row[12] = 2088
+    clim_row[13] = 6264
+    clim_row[14] = 1
+    clim_row[15] = "Émissions fugitives"
+    clim_row[16] = "Scope 1"
+
+    buf = make_excel({
+        "Energie": [
+            ["Site", "Energie", "Quantite", "Unite"],
+            ["Arthez", "Eau", 16, "m3"],
+        ],
+        "Clim": [
+            ["Arthez"],
+            ["Climatiseur fonctionnement"],
+            clim_row,
+        ],
+        "Intrants - Pontonx": [
+            ["Matières premières / Consommables", "Famille", "Quantite", "Unite"],
+            ["Acier", "Métal", 10, "kg"],
+        ],
+        "Achats services": [
+            ["Site", "Société", "Type prestation", "Montant"],
+            ["Arthez", "Bureau Conseil", "Audit", 1200],
+        ],
+        "Déplacements professionnels": [
+            ["Site", "Moyen de déplacement", "Nombre de km réalisés par an"],
+            ["Palplast", "Voiture", 3500],
+        ],
+        "Déplacements DT": [
+            [
+                "Site",
+                "Distance moyenne domicile travail (km)",
+                "Nombre de fois que vous réalisez cette distance par jour",
+                "Nb de jours travaillés sur la période",
+                "Avez-vous un second moyen de déplacement pour ces aller-retours ? Si oui, dans quelle propotion l'utilisez-vous ?",
+            ],
+            ["Infautelec", 12, 2, 210, "Vélo", 0.2],
+        ],
+        "Déchets": [
+            ["Site", "Nom du déchet", "Code déchet", "Quantite", "Unite", "Mode de traitement"],
+            ["Pontonx", "Carton", "15 01 01", 2, "t", "Recyclage"],
+        ],
+        "Fret": [
+            ["Site", "Nom du transporteur", "Transport aval ou intersite ?", "Lieu de départ", "Lieu d'arrivée", "Distance parcourue (km)", "Quantite"],
+            ["Arthez", "Transport Sud", "Aval", "Arthez", "Paris", 780, 4],
+        ],
+        "Sous-traitance": [
+            ["Site", "Nom de la société de sous-traitance", "Type de prestation réalisée", "Montant"],
+            ["Palplast", "Maintenance Plus", "Maintenance", 2500],
+        ],
+        "Biens immobilisés": [
+            ["Site", "Surface de terre convertie", "Durée d'amortissement"],
+            ["Arthez", 100, 20],
+            [],
+            ["Actif en leasing"],
+            ["Site", "Matériel/Equipement", "Durée de la LLD", "Quantite", "Unite"],
+            ["Arthez", "Chariot élévateur", 36, 1, "unité"],
+        ],
+    })
+    xlsx = tmp_path / "citba_complet.xlsx"
+    xlsx.write_bytes(buf.read())
+
+    results = parse_excel(xlsx)
+
+    expected = {
+        "energie",
+        "clim",
+        "achats_biens",
+        "achats_services",
+        "deplacements_pro",
+        "deplacements_dt",
+        "dechets",
+        "transport_aval",
+        "sous_traitance",
+        "biens_immobilises",
+        "actifs_leasing",
+    }
+    assert expected.issubset(results.keys())
+    assert all(len(results[key]) >= 1 for key in expected)
+    assert results["achats_biens"][0]["site"] == "Pontonx"
+    assert results["clim"][0]["scope"] == "1"
+    assert results["actifs_leasing"][0]["materielEquipement"] == "Chariot élévateur"

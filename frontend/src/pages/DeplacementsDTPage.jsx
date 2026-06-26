@@ -1,58 +1,59 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
 import DataTable from "../components/table/DataTable.jsx";
-import SummaryCard from "../components/dashboard/SummaryCard.jsx";
-import BarChart from "../components/dashboard/BarChart.jsx";
-import {
-  deplacementsDTColumns,
-  deplacementsDTRows,
-  deplacementsDTStats,
-  chartByMoyen,
-  chartByDistance,
-} from "../data/deplacementsDTData.js";
+import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
+import { deplacementsDTColumns } from "../data/deplacementsDTData.js";
+import { getDataset } from "../services/api.js";
 
 function uniqueValues(rows, key) {
-  return [...new Set(rows.map((r) => r[key]))].sort();
+  return [...new Set(rows.map((r) => r[key]).filter(Boolean))].sort();
 }
 
 function DeplacementsDTPage() {
+  const [apiRows, setApiRows] = useState(null);
   const [siteFilter, setSiteFilter] = useState("");
   const [moyenFilter, setMoyenFilter] = useState("");
-  const [teletravailFilter, setTeletravailFilter] = useState("");
 
-  const sites = useMemo(() => uniqueValues(deplacementsDTRows, "site"), []);
-  const moyens = useMemo(() => uniqueValues(deplacementsDTRows, "moyenDeplacement"), []);
-  const teletravailOptions = useMemo(() => uniqueValues(deplacementsDTRows, "teletravail"), []);
+  useEffect(() => {
+    getDataset("deplacements_dt").then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setApiRows(data);
+      }
+    });
+  }, []);
+
+  const rows   = apiRows ?? [];
+  const sites  = useMemo(() => uniqueValues(rows, "site"),             [rows]);
+  const moyens = useMemo(() => uniqueValues(rows, "moyenDeplacement"), [rows]);
 
   const filtered = useMemo(() => {
-    let data = deplacementsDTRows;
-    if (siteFilter) data = data.filter((r) => r.site === siteFilter);
-    if (moyenFilter) data = data.filter((r) => r.moyenDeplacement === moyenFilter);
-    if (teletravailFilter) data = data.filter((r) => r.teletravail === teletravailFilter);
-    return data;
-  }, [siteFilter, moyenFilter, teletravailFilter]);
+    let d = rows;
+    if (siteFilter)  d = d.filter((r) => r.site             === siteFilter);
+    if (moyenFilter) d = d.filter((r) => r.moyenDeplacement === moyenFilter);
+    return d;
+  }, [rows, siteFilter, moyenFilter]);
 
   const avgDistance = useMemo(() => {
     if (filtered.length === 0) return "0";
-    return (filtered.reduce((s, r) => s + r.distanceKm, 0) / filtered.length).toFixed(1);
+    return (
+      filtered.reduce((s, r) => s + (r.distanceDomTravail ?? 0), 0) / filtered.length
+    ).toFixed(1);
   }, [filtered]);
 
   return (
     <PageContainer
       title="Déplacements domicile-travail"
-      description="Données de test sur les trajets quotidiens des collaborateurs. Ces informations alimenteront le calcul carbone (scope 3)."
+      description="Trajets quotidiens des collaborateurs entre leur domicile et leur lieu de travail. Scope 3 amont — catégorie 7."
+      actions={
+        apiRows
+          ? <span className="data-source-badge data-source-badge--live">Données importées</span>
+          : <span className="data-source-badge data-source-badge--mock">En attente d'import</span>
+      }
     >
-      <div className="summary-grid">
-        {deplacementsDTStats.map((card) => (
-          <SummaryCard
-            key={card.id}
-            label={card.label}
-            value={card.value}
-            helper={card.helper}
-            accent={card.accent}
-          />
-        ))}
-      </div>
+      {!apiRows ? (
+        <ImportRequiredState message="Importez le fichier Excel pour analyser les déplacements domicile-travail." />
+      ) : (
+        <>
 
       <div className="filter-bar">
         <select
@@ -61,9 +62,7 @@ function DeplacementsDTPage() {
           className="filter-select"
         >
           <option value="">Tous les sites</option>
-          {sites.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          {sites.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
 
         <select
@@ -72,20 +71,7 @@ function DeplacementsDTPage() {
           className="filter-select"
         >
           <option value="">Tous les moyens</option>
-          {moyens.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
-
-        <select
-          value={teletravailFilter}
-          onChange={(e) => setTeletravailFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">Télétravail (tous)</option>
-          {teletravailOptions.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
+          {moyens.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
 
@@ -106,10 +92,8 @@ function DeplacementsDTPage() {
 
       <DataTable columns={deplacementsDTColumns} rows={filtered} />
 
-      <div className="charts-grid">
-        <BarChart title="Répartition par moyen de déplacement" items={chartByMoyen} />
-        <BarChart title="Répartition par tranche de distance" items={chartByDistance} />
-      </div>
+        </>
+      )}
     </PageContainer>
   );
 }

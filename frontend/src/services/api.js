@@ -1,12 +1,27 @@
 /**
- * Tous les appels passent par /api (proxy Vite → http://localhost:8000).
- * Si le backend n'est pas lancé, les pages continuent d'afficher
- * les données mock JS — aucune erreur bloquante.
+ * Tous les appels passent par /api (proxy Vite -> backend FastAPI local).
  */
+
+class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(`/api${path}`, options);
-  if (!res.ok) throw new Error(`Erreur ${res.status} sur ${path}`);
+  if (!res.ok) {
+    let detail = `Erreur ${res.status} sur ${path}`;
+    try {
+      const body = await res.json();
+      if (body?.detail) detail = body.detail;
+    } catch {
+      // La réponse n'est pas forcément JSON (proxy, serveur coupé, etc.).
+    }
+    throw new ApiError(detail, res.status);
+  }
   return res.json();
 }
 
@@ -21,8 +36,13 @@ export async function uploadExcelFile(file) {
   formData.append("file", file);
   try {
     return await apiFetch("/upload", { method: "POST", body: formData });
-  } catch {
-    return { success: false, message: "Backend non connecté. Mode démonstration." };
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof ApiError
+        ? err.message
+        : "Backend non connecté. Lancez le serveur puis relancez l'import.",
+    };
   }
 }
 
@@ -44,7 +64,7 @@ export async function getUploadStatus(jobId) {
  * Récupère un jeu de données depuis le backend.
  * Retourne null si non disponible (backend éteint ou fichier non importé).
  *
- * @param {"energie"|"achats_biens"|"achats_services"|"biens_immobilises"
+ * @param {"energie"|"clim"|"achats_biens"|"achats_services"|"biens_immobilises"
  *         |"deplacements_pro"|"dechets"|"transport_aval"
  *         |"sous_traitance"|"deplacements_dt"|"actifs_leasing"} dataset
  */

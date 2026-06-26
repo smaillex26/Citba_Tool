@@ -1,51 +1,53 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
 import DataTable from "../components/table/DataTable.jsx";
-import SummaryCard from "../components/dashboard/SummaryCard.jsx";
-import BarChart from "../components/dashboard/BarChart.jsx";
-import {
-  actifsLeasingColumns,
-  actifsLeasingRows,
-  actifsLeasingStats,
-  chartByDuree,
-  chartByMontant,
-} from "../data/actifsLeasingData.js";
+import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
+import { actifsLeasingColumns } from "../data/actifsLeasingData.js";
+import { getDataset } from "../services/api.js";
 
 function uniqueValues(rows, key) {
-  return [...new Set(rows.map((r) => r[key]))].sort((a, b) => a - b);
+  return [...new Set(rows.map((r) => r[key]).filter(Boolean))].sort((a, b) => a - b);
 }
 
 function ActifsLeasingPage() {
+  const [apiRows, setApiRows] = useState(null);
   const [dureeFilter, setDureeFilter] = useState("");
 
-  const durees = useMemo(() => uniqueValues(actifsLeasingRows, "dureeLLD"), []);
+  useEffect(() => {
+    getDataset("actifs_leasing").then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setApiRows(data);
+      }
+    });
+  }, []);
+
+  const rows  = apiRows ?? [];
+  const durees = useMemo(() => uniqueValues(rows, "dureeLLD"), [rows]);
 
   const filtered = useMemo(() => {
-    if (!dureeFilter) return actifsLeasingRows;
-    return actifsLeasingRows.filter((r) => String(r.dureeLLD) === dureeFilter);
-  }, [dureeFilter]);
+    if (!dureeFilter) return rows;
+    return rows.filter((r) => String(r.dureeLLD) === dureeFilter);
+  }, [rows, dureeFilter]);
 
   const totalMontant = useMemo(
-    () => filtered.reduce((s, r) => s + r.montantEuro, 0).toLocaleString("fr-FR"),
+    () => filtered.reduce((s, r) => s + (r.montantEuro ?? 0), 0).toLocaleString("fr-FR"),
     [filtered],
   );
 
   return (
     <PageContainer
       title="Actifs en leasing"
-      description="Inventaire des matériels et équipements en location longue durée (LLD). Ces données alimenteront le calcul des immobilisations (scope 3)."
+      description="Matériels et équipements en location longue durée (LLD). Scope 3 amont — catégorie 8."
+      actions={
+        apiRows
+          ? <span className="data-source-badge data-source-badge--live">Données importées</span>
+          : <span className="data-source-badge data-source-badge--mock">En attente d'import</span>
+      }
     >
-      <div className="summary-grid">
-        {actifsLeasingStats.map((card) => (
-          <SummaryCard
-            key={card.id}
-            label={card.label}
-            value={card.value}
-            helper={card.helper}
-            accent={card.accent}
-          />
-        ))}
-      </div>
+      {!apiRows ? (
+        <ImportRequiredState message="Importez le fichier Excel pour analyser les actifs en leasing." />
+      ) : (
+        <>
 
       <div className="filter-bar">
         <select
@@ -73,10 +75,8 @@ function ActifsLeasingPage() {
 
       <DataTable columns={actifsLeasingColumns} rows={filtered} />
 
-      <div className="charts-grid">
-        <BarChart title="Répartition par durée de contrat" items={chartByDuree} />
-        <BarChart title="Répartition par tranche de montant" items={chartByMontant} />
-      </div>
+        </>
+      )}
     </PageContainer>
   );
 }

@@ -9,6 +9,7 @@ router = APIRouter(tags=["Données"])
 
 DATASETS = [
     "energie",
+    "clim",
     "achats_biens",
     "achats_services",
     "biens_immobilises",

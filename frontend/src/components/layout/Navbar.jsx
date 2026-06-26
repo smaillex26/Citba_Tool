@@ -7,11 +7,11 @@ const mainLinks = [
 ];
 
 const dataPages = [
-  { to: "/donnees/collecte", label: "Collecte matières" },
   { to: "/donnees/deplacements-dt", label: "Déplacements domicile-travail" },
   { to: "/donnees/actifs-leasing", label: "Actifs en leasing" },
   { to: "/donnees/sous-traitance", label: "Sous-traitance" },
   { to: "/donnees/energie-process", label: "Énergie et Process" },
+  { to: "/donnees/clim", label: "Clim" },
   { to: "/donnees/achats-biens", label: "Achats de biens" },
   { to: "/donnees/achats-services", label: "Achats de services" },
   { to: "/donnees/biens-immobilises", label: "Biens immobilisés" },

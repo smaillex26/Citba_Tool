@@ -26,88 +26,209 @@ DATA_DIR.mkdir(exist_ok=True)
 
 # Correspondance nom d'onglet (normalisé) → nom de dataset
 ONGLET_MAP: dict[str, str] = {
-    "energie":              "energie",
-    "energie et process":   "energie",
-    "énergie":              "energie",
-    "énergie et process":   "energie",
-    "energy":               "energie",
-    "achats biens":         "achats_biens",
-    "achats de biens":      "achats_biens",
-    "achats services":      "achats_services",
-    "achats de services":   "achats_services",
-    "biens immobilises":    "biens_immobilises",
-    "biens immobilisés":    "biens_immobilises",
-    "deplacements pro":     "deplacements_pro",
-    "déplacements pro":     "deplacements_pro",
-    "déplacements professionnels": "deplacements_pro",
-    "deplacements professionnels": "deplacements_pro",
-    "dechets":              "dechets",
-    "déchets":              "dechets",
-    "transport aval":       "transport_aval",
-    "sous traitance":       "sous_traitance",
-    "sous-traitance":       "sous_traitance",
-    "deplacements dt":      "deplacements_dt",
-    "déplacements dt":      "deplacements_dt",
-    "déplacements domicile-travail": "deplacements_dt",
-    "actifs leasing":       "actifs_leasing",
-    "actifs en leasing":    "actifs_leasing",
+    # Energie
+    "energie":                          "energie",
+    "energie et process":               "energie",
+    "énergie":                          "energie",
+    "énergie et process":               "energie",
+    "energy":                           "energie",
+    "clim":                             "clim",
+    # Achats biens (Intrants par site)
+    "achats biens":                     "achats_biens",
+    "achats de biens":                  "achats_biens",
+    "intrants - arthez":                "achats_biens",
+    "intrants - palplast":              "achats_biens",
+    "intrants - pontonx":               "achats_biens",
+    "intrants - infautelec":            "achats_biens",
+    "intrants":                         "achats_biens",
+    # Achats services
+    "achats services":                  "achats_services",
+    "achats de services":               "achats_services",
+    "achats de service":                "achats_services",
+    # Biens immobilisés
+    "biens immobilises":                "biens_immobilises",
+    "biens immobilisés":                "biens_immobilises",
+    # Déplacements pro
+    "deplacements pro":                 "deplacements_pro",
+    "déplacements pro":                 "deplacements_pro",
+    "déplacements professionnels":      "deplacements_pro",
+    "deplacements professionnels":      "deplacements_pro",
+    "déplacement pro":                  "deplacements_pro",
+    "deplacements pro ":                "deplacements_pro",
+    # Déplacements domicile-travail
+    "deplacements dt":                  "deplacements_dt",
+    "déplacements dt":                  "deplacements_dt",
+    "déplacements domicile-travail":    "deplacements_dt",
+    "déplacements domicile travail":    "deplacements_dt",
+    "déplacement domicile -travail":    "deplacements_dt",
+    "déplacement domicile-travail":     "deplacements_dt",
+    "déplacement domicile travail":     "deplacements_dt",
+    "déplacement domicile -travail ":   "deplacements_dt",
+    # Déchets
+    "dechets":                          "dechets",
+    "déchets":                          "dechets",
+    # Transport aval
+    "transport aval":                   "transport_aval",
+    "fret":                             "transport_aval",
+    # Sous-traitance
+    "sous traitance":                   "sous_traitance",
+    "sous-traitance":                   "sous_traitance",
+    # Actifs leasing
+    "actifs leasing":                   "actifs_leasing",
+    "actifs en leasing":                "actifs_leasing",
+}
+
+OUTPUT_DATASETS = {
+    "energie",
+    "clim",
+    "achats_biens",
+    "achats_services",
+    "biens_immobilises",
+    "deplacements_pro",
+    "dechets",
+    "transport_aval",
+    "sous_traitance",
+    "deplacements_dt",
+    "actifs_leasing",
 }
 
 # Remapping des noms de colonnes : nom brut (normalisé) → clé interne
 COLONNE_MAP: dict[str, str] = {
-    "site":                    "site",
-    "energie":                 "energie",
-    "énergie":                 "energie",
-    "quantite":                "quantite",
-    "quantité":                "quantite",
-    "unite":                   "unite",
-    "unité":                   "unite",
-    "facteurs d'emissions":    "facteurEmission",
-    "facteurs d'émissions":    "facteurEmission",
-    "facteur d'emission":      "facteurEmission",
-    "facteur d'émission":      "facteurEmission",
-    "fe kg co2e":              "feKgCO2eUnite",
-    "fe (kg co2e/unité)":      "feKgCO2eUnite",
-    "fe kg co2e/unite":        "feKgCO2eUnite",
-    "fe":                      "feKgCO2eUnite",
-    "facteur emission":        "feKgCO2eUnite",
-    "facteur émission":        "feKgCO2eUnite",
-    "facteur d'emission unitaire": "feKgCO2eUnite",
-    "fe unitaire":             "feKgCO2eUnite",
-    "fe kg co2e/kwh":          "feKgCO2eUnite",
-    "fe kg co2e/m3":           "feKgCO2eUnite",
-    "fe kg co2e/l":            "feKgCO2eUnite",
-    "fe kg co2e/kg":           "feKgCO2eUnite",
-    "categorie d'emission":    "categorieEmission",
-    "catégorie d'émission":    "categorieEmission",
-    "categories d'emission":   "categorieEmission",
-    "catégories d'émission":   "categorieEmission",
-    "categorie emission":      "categorieEmission",
-    "catégorie":               "categorieEmission",
-    "scope":                   "scope",
-    "commentaire":             "commentaire",
-    "kg co2e":                 "kgCO2e",
-    "kg co2":                  "kgCO2e",
-    "co2e":                    "kgCO2e",
-    "total kg co2e":           "kgCO2e",
-    "emissions co2e":          "kgCO2e",
-    "émissions co2e":          "kgCO2e",
-    "emissions kg co2e":       "kgCO2e",
-    "émissions kg co2e":       "kgCO2e",
-    "%":                       "pourcentage",
-    "pourcentage":             "pourcentage",
-    "% total":                 "pourcentage",
-    # colonnes communes autres datasets
-    "societe":                 "societe",
-    "société":                 "societe",
-    "montant":                 "montantEuro",
-    "montant eur":             "montantEuro",
-    "montant euro":            "montantEuro",
-    "type prestation":         "typePrestation",
-    "type de prestation":      "typePrestation",
-    "fournisseur":             "fournisseur",
-    "description":             "description",
-    "date":                    "date",
+    # Communs
+    "site":                             "site",
+    "nom du site":                      "site",
+    "quantite":                         "quantite",
+    "quantité":                         "quantite",
+    "unite":                            "unite",
+    "unité":                            "unite",
+    "commentaire":                      "commentaire",
+    "scope":                            "scope",
+    "date":                             "date",
+    "description":                      "description",
+
+    # Energie
+    "energie":                          "energie",
+    "énergie":                          "energie",
+    "facteurs d'emissions":             "facteurEmission",
+    "facteurs d'émissions":             "facteurEmission",
+    "facteur d'emission":               "facteurEmission",
+    "facteur d'émission":               "facteurEmission",
+    "facteurs d'émission":              "facteurEmission",
+    "facteurs d'emission":              "facteurEmission",
+    "fe kg co2e":                       "feKgCO2eUnite",
+    "fe (kg co2e/unité)":               "feKgCO2eUnite",
+    "fe kg co2e/unite":                 "feKgCO2eUnite",
+    "fe":                               "feKgCO2eUnite",
+    "facteur emission":                 "feKgCO2eUnite",
+    "facteur émission":                 "feKgCO2eUnite",
+    "facteur d'emission unitaire":      "feKgCO2eUnite",
+    "fe unitaire":                      "feKgCO2eUnite",
+    "fe kg co2e/kwh":                   "feKgCO2eUnite",
+    "fe kg co2e/m3":                    "feKgCO2eUnite",
+    "fe kg co2e/l":                     "feKgCO2eUnite",
+    "fe kg co2e/kg":                    "feKgCO2eUnite",
+    "categorie d'emission":             "categorieEmission",
+    "catégorie d'émission":             "categorieEmission",
+    "categories d'emission":            "categorieEmission",
+    "catégories d'émission":            "categorieEmission",
+    "categorie emission":               "categorieEmission",
+    "catégorie":                        "categorieEmission",
+    "catégorie d'émissions":            "categorieEmission",
+    "kg co2e":                          "kgCO2e",
+    "kg co2":                           "kgCO2e",
+    "co2e":                             "kgCO2e",
+    "total kg co2e":                    "kgCO2e",
+    "emissions co2e":                   "kgCO2e",
+    "émissions co2e":                   "kgCO2e",
+    "emissions kg co2e":                "kgCO2e",
+    "émissions kg co2e":                "kgCO2e",
+    "teqco2":                           "kgCO2e",   # variante PALPLAST/PONTONX
+    "%":                                "pourcentage",
+    "pourcentage":                      "pourcentage",
+    "% total":                          "pourcentage",
+
+    # Achats biens / Intrants
+    "matières premières / consommables": "matiereConsommable",
+    "matières premières":               "matiereConsommable",
+    "matieres premieres / consommables":"matiereConsommable",
+    "famille":                          "famille",
+    "distance moyenne entre le fournisseur et le site de réception de la matière première":
+                                        "distanceFournisseur",
+    "distance moyenne entre le fournisseur et le site de reception de la matiere premiere":
+                                        "distanceFournisseur",
+    "moyen de transport":               "moyenTransport",
+    "moyen de transport utilisé":       "moyenTransport",
+    "moyen de transport utilise":       "moyenTransport",
+
+    # Achats services / Sous-traitance
+    "societe":                          "societe",
+    "société":                          "societe",
+    "nom de la société de sous-traitance": "societe",
+    "nom de la societe de sous-traitance": "societe",
+    "type prestation":                  "typePrestation",
+    "type de prestation":               "typePrestation",
+    "type de prestation réalisée":      "typePrestation",
+    "type de prestation realisee":      "typePrestation",
+    "montant":                          "montantEuro",
+    "montant eur":                      "montantEuro",
+    "montant euro":                     "montantEuro",
+    "montant (€)":                      "montantEuro",
+    "montant facturé par le sous-traitant (€)": "montantEuro",
+    "montant facture par le sous-traitant (€)": "montantEuro",
+    "fournisseur":                      "fournisseur",
+
+    # Déplacements professionnels
+    "moyen de déplacement":             "moyenDeplacement",
+    "moyen de deplacement":             "moyenDeplacement",
+    "info complémentaire":              "infoComplementaire",
+    "info complementaire":              "infoComplementaire",
+    "nombre de km réalisés par an":     "kmParAn",
+    "nombre de km realises par an":     "kmParAn",
+    "frais de restauration":            "fraisRestauration",
+    "frais d'hébergement":              "fraisHebergement",
+    "frais d'hebergement":              "fraisHebergement",
+    "consommation de carburant si moteur thermique": "consomCarburant",
+
+    # Déplacements domicile-travail
+    "distance moyenne domicile travail (km)": "distanceDomTravail",
+    "nombre de fois que vous réalisez cette distance par jour": "nbAllerRetour",
+    "nombre de fois que vous realisez cette distance par jour": "nbAllerRetour",
+    "nb de jours travaillés sur la période": "nbJoursTravailles",
+    "nb de jours travailles sur la periode": "nbJoursTravailles",
+    "avez-vous un second moyen de déplacement pour ces aller-retours ? si oui, dans quelle propotion l'utilisez-vous ?":
+                                        "secondMoyen",
+    "travaillez-vous en télétravail ? si oui, combien de jours par semaine ?":
+                                        "teletravail",
+    # NB: les sous-en-têtes R01 de la feuille DT ("Type de moyen", "Proportion")
+    # restent volontairement absents : ils ne sont pas une vraie ligne de header.
+
+    # Biens immobilisés (UTCF)
+    "surface de terre convertie":       "surfaceTerre",
+    "durée d'amortissement":            "dureeAmortissement",
+    "duree d'amortissement":            "dureeAmortissement",
+
+    # Actifs leasing
+    "matériel/equipement":              "materielEquipement",
+    "materiel/equipement":              "materielEquipement",
+    "durée de la lld":                  "dureeLLD",
+    "duree de la lld":                  "dureeLLD",
+
+    # Déchets
+    "nom du déchet":                    "nomDechet",
+    "nom du dechet":                    "nomDechet",
+    "code déchet":                      "codeDechet",
+    "code dechet":                      "codeDechet",
+    "mode de traitement":               "modeTraitement",
+
+    # Fret / Transport aval
+    "nom du transporteur":              "nomTransporteur",
+    "transport aval ou intersite ?":    "typeTransport",
+    "transport aval ou intersite":      "typeTransport",
+    "lieu de départ":                   "lieuDepart",
+    "lieu de depart":                   "lieuDepart",
+    "lieu d'arrivée":                   "lieuArrivee",
+    "lieu d'arrivee":                   "lieuArrivee",
+    "distance parcourue (km)":          "distanceKm",
 }
 
 # Sites connus : clé normalisée → nom affiché
@@ -118,11 +239,61 @@ SITES_MAP: dict[str, str] = {
     "infautelec":  "Infautelec",
 }
 
+SITE_ALIASES: dict[str, str] = {
+    "arthez": "Arthez",
+    "arthez-de-bearn": "Arthez",
+    "arthez-de-béarn": "Arthez",
+    "arthez de bearn": "Arthez",
+    "arthez de béarn": "Arthez",
+    "palplast": "Palplast",
+    "palpalst": "Palplast",
+    "pontonx": "Pontonx",
+    "infautelec": "Infautelec",
+}
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _normalize(text: str) -> str:
     """Met en minuscules et supprime les espaces superflus."""
     return re.sub(r"\s+", " ", str(text).strip().lower())
+
+
+def _normalize_site(value) -> str | None:
+    """Normalise les variantes de noms de sites du fichier Excel CITBA."""
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw or raw.lower() in ("nan", "none"):
+        return None
+    key = _normalize(raw)
+    return SITE_ALIASES.get(key, raw.title() if raw.isupper() else raw)
+
+
+def _normalize_scope(value) -> str | None:
+    """Normalise 'Scope 1'/'Scope 2'/'Scope 3 Amont' vers les clés utilisées côté UI."""
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw or raw.lower() in ("nan", "none"):
+        return None
+    key = _normalize(raw)
+    key = key.replace("scope", "").strip()
+    if key in ("1", "2"):
+        return key
+    if "3" in key and "amont" in key:
+        return "3 amont"
+    if "3" in key and "aval" in key:
+        return "3 aval"
+    return raw
+
+
+def _site_from_sheet_name(sheet_name: str) -> str | None:
+    """Déduit le site depuis les onglets du type 'Intrants - PALPLAST'."""
+    normalized = _normalize(sheet_name)
+    for key, site in SITE_ALIASES.items():
+        if key in normalized:
+            return site
+    return None
 
 
 def _to_float(v) -> float:
@@ -158,7 +329,6 @@ def _detect_site(row_values: list) -> str | None:
     """
     non_null = [str(v).strip() for v in row_values
                 if v is not None and str(v).strip() not in ("", "nan", "None")]
-    # Plus de 2 valeurs non nulles → c'est une ligne de données, pas un indicateur
     if len(non_null) == 0 or len(non_null) > 2:
         return None
     for cell in non_null:
@@ -183,9 +353,26 @@ def _row_non_null(row_values: list) -> list:
             if v is not None and str(v).strip() not in ("", "nan", "None")]
 
 
+def _safe_value(value):
+    """Convertit les NaN pandas/numpy en None pour produire du JSON strict."""
+    if isinstance(value, float) and value != value:
+        return None
+    return value
+
+
+def _clean_record(record: dict) -> dict:
+    """Nettoie un enregistrement avant exposition API / écriture JSON."""
+    return {key: _safe_value(value) for key, value in record.items()}
+
+
 # ── Parsing principal ─────────────────────────────────────────────────────────
 
-def _parse_sheet_raw(df_raw: pd.DataFrame, dataset: str) -> list[dict]:
+def _parse_sheet_raw(
+    df_raw: pd.DataFrame,
+    dataset: str,
+    start_id: int = 0,
+    forced_site: str | None = None,
+) -> list[dict]:
     """
     Parse un onglet ligne par ligne en détectant :
     - les noms de sites (cellule isolée = nom d'un site connu)
@@ -196,10 +383,10 @@ def _parse_sheet_raw(df_raw: pd.DataFrame, dataset: str) -> list[dict]:
     Si aucun site n'est détecté dans la feuille, utilise le fallback
     d'une seule passe avec la première ligne d'en-tête trouvée.
     """
-    current_site: str | None = None
-    header_map: dict[int, str] = {}   # index colonne → clé interne
+    current_site: str | None = forced_site
+    header_map: dict[int, str] = {}
     rows: list[dict] = []
-    id_counter = 0
+    id_counter = start_id
 
     for _, raw_row in df_raw.iterrows():
         values = list(raw_row)
@@ -212,8 +399,9 @@ def _parse_sheet_raw(df_raw: pd.DataFrame, dataset: str) -> list[dict]:
         # Détection d'un nom de site
         site = _detect_site(values)
         if site:
-            current_site = site
-            header_map = {}   # reset : on s'attend à de nouveaux en-têtes
+            if not forced_site:
+                current_site = site
+            header_map = {}
             continue
 
         # Détection d'une ligne d'en-tête
@@ -224,6 +412,31 @@ def _parse_sheet_raw(df_raw: pd.DataFrame, dataset: str) -> list[dict]:
                 key = _normalize(str(v))
                 if key in COLONNE_MAP:
                     header_map[i] = COLONNE_MAP[key]
+
+            # Pour le dataset énergie : la colonne Scope n'a pas d'en-tête dans l'Excel.
+            # Elle se trouve juste après la colonne Catégorie d'émissions.
+            if dataset == "energie":
+                facteur_idx = next(
+                    (i for i, k in header_map.items() if k == "facteurEmission"), None
+                )
+                if facteur_idx is not None and (facteur_idx + 1) not in header_map:
+                    header_map[facteur_idx + 1] = "feKgCO2eUnite"
+
+                cat_idx = next(
+                    (i for i, k in header_map.items() if k == "categorieEmission"), None
+                )
+                if cat_idx is not None and (cat_idx + 1) not in header_map:
+                    header_map[cat_idx + 1] = "scope"
+
+            # Feuille domicile-travail : la proportion du second moyen est en colonne
+            # suivante, sous un sous-en-tête séparé sur R01.
+            if dataset == "deplacements_dt":
+                second_idx = next(
+                    (i for i, k in header_map.items() if k == "secondMoyen"), None
+                )
+                if second_idx is not None and (second_idx + 1) not in header_map:
+                    header_map[second_idx + 1] = "proportionSecondMoyen"
+
             continue
 
         # Ligne de données (on doit avoir un header_map actif)
@@ -241,17 +454,38 @@ def _parse_sheet_raw(df_raw: pd.DataFrame, dataset: str) -> list[dict]:
             continue
 
         # Ignorer les lignes résumé insérées dans l'Excel (TOTAL, Sous-total, etc.)
-        # Ces lignes doublent les valeurs car elles répètent des sommes déjà comptées.
         _text_vals = " ".join(
             str(v) for v in record.values()
             if v is not None and isinstance(v, str)
         ).lower()
+        if (
+            "type de moyen de déplacement" in _text_vals
+            or "type de moyen de deplacement" in _text_vals
+            or "proportion d'utilisation" in _text_vals
+        ):
+            continue
         if re.search(r"\btotal\b|\bsous.total\b|\btotaux\b|\bsomme\b", _text_vals):
             continue
 
         # Injecter le site détecté (sauf si la colonne site est déjà dans le fichier)
         if current_site and "site" not in record:
             record["site"] = current_site
+        elif "site" in record:
+            record["site"] = _normalize_site(record.get("site"))
+
+        if "scope" in record:
+            record["scope"] = _normalize_scope(record.get("scope"))
+
+        # L'onglet Fret contient parfois des lignes de choix ("Aval", "Intersite")
+        # sans quantité, transporteur, lieu ni distance : elles ne doivent pas créer
+        # de lignes métier.
+        if dataset == "transport_aval":
+            meaningful = [
+                k for k, v in record.items()
+                if v is not None and str(v).strip() not in ("", "nan", "None")
+            ]
+            if meaningful == ["typeTransport"]:
+                continue
 
         id_counter += 1
         record["id"] = id_counter
@@ -261,21 +495,114 @@ def _parse_sheet_raw(df_raw: pd.DataFrame, dataset: str) -> list[dict]:
             record = enrichir_ligne(record)
 
         # Pour le dataset énergie, ignorer les lignes sans quantité ni kgCO2e utile
-        # (ex. : énergie listée dans le fichier mais sans données chiffrées)
         if dataset == "energie":
             quantite_val = _to_float(record.get("quantite"))
             kg_val       = _to_float(record.get("kgCO2e"))
             if quantite_val == 0 and kg_val == 0:
-                id_counter -= 1   # annuler l'incrément
+                id_counter -= 1
                 continue
 
-        rows.append(record)
+        rows.append(_clean_record(record))
 
     # Normaliser kgCO2e en float pour le dataset énergie
-    # (le pourcentage est calculé côté frontend par GroupedDataTable, groupe par groupe)
     if dataset == "energie":
         for r in rows:
             r["kgCO2e"] = _to_float(r.get("kgCO2e"))
+
+    return rows
+
+
+def _parse_biens_two_sections(df_raw: pd.DataFrame) -> tuple[list[dict], list[dict]]:
+    """
+    Parse l'onglet "Biens immobilisés" qui contient deux sections :
+    1. UTCF – Changement d'affectation des sols → dataset biens_immobilises
+    2. Actif en leasing → dataset actifs_leasing
+    Retourne (rows_biens, rows_leasing).
+    """
+    split_idx = None
+    for i, row in df_raw.iterrows():
+        values = list(row)
+        non_null = _row_non_null(values)
+        if len(non_null) == 1:
+            norm = _normalize(str(non_null[0]))
+            if "actif en leasing" in norm or "actifs en leasing" in norm:
+                split_idx = i
+                break
+
+    if split_idx is None:
+        return _parse_sheet_raw(df_raw, "biens_immobilises"), []
+
+    df_biens  = df_raw[df_raw.index < split_idx].reset_index(drop=True)
+    df_leasing = df_raw[df_raw.index > split_idx].reset_index(drop=True)
+
+    rows_biens  = _parse_sheet_raw(df_biens,   "biens_immobilises")
+    rows_leasing = _parse_sheet_raw(df_leasing, "actifs_leasing", start_id=len(rows_biens))
+
+    return rows_biens, rows_leasing
+
+
+def _parse_clim_sheet(df_raw: pd.DataFrame, start_id: int = 0) -> list[dict]:
+    """
+    Parse l'onglet Clim, dont la structure ne suit pas les en-têtes classiques.
+    Les valeurs utiles sont déjà calculées dans les colonnes de droite :
+    facteur d'émission, FE, kg CO2e, %, catégorie, scope.
+    """
+    rows: list[dict] = []
+    current_site: str | None = None
+    current_section: str | None = None
+    id_counter = start_id
+
+    for _, raw_row in df_raw.iterrows():
+        values = list(raw_row)
+        non_null = _row_non_null(values)
+        if not non_null:
+            continue
+
+        site = _detect_site(values)
+        if site:
+            current_site = site
+            current_section = None
+            continue
+
+        first = str(values[0]).strip() if values and values[0] is not None else ""
+        first_norm = _normalize(first)
+        if "climatiseur fonctionnement" in first_norm:
+            current_section = "Climatiseur fonctionnement"
+            continue
+        if "climatiseur fin de vie" in first_norm:
+            current_section = "Climatiseur fin de vie"
+            continue
+        if first_norm.startswith("total"):
+            continue
+
+        if not current_site or not current_section:
+            continue
+        if not (
+            first_norm.startswith("climatiseur")
+            or first_norm.startswith("climatisation")
+        ):
+            continue
+
+        kg_co2e = _to_float(values[13] if len(values) > 13 else None)
+        quantite = _to_float(values[9] if len(values) > 9 else None)
+        if kg_co2e == 0 and quantite == 0:
+            continue
+
+        id_counter += 1
+        rows.append(_clean_record({
+            "id": id_counter,
+            "site": current_site,
+            "energie": f"{current_section} - {first}",
+            "quantite": quantite,
+            "unite": "kg fluide",
+            "facteurEmission": values[11] if len(values) > 11 else None,
+            "feKgCO2eUnite": _to_float(values[12] if len(values) > 12 else None),
+            "categorieEmission": values[15] if len(values) > 15 else None,
+            "scope": _normalize_scope(values[16] if len(values) > 16 else "Scope 1"),
+            "commentaire": current_section,
+            "kgCO2e": kg_co2e,
+            "pourcentage": _to_float(values[14] if len(values) > 14 else None),
+        }))
 
     return rows
 
@@ -292,6 +619,11 @@ def parse_excel(path: Path) -> dict[str, list]:
         path, sheet_name=None, engine="openpyxl", header=None
     )
 
+    # Un nouvel import doit refléter uniquement le fichier déposé.
+    # On supprime donc les anciens JSON pour éviter les données obsolètes.
+    for dataset in OUTPUT_DATASETS:
+        (DATA_DIR / f"{dataset}.json").unlink(missing_ok=True)
+
     results: dict[str, list] = {}
 
     for sheet_name, df_raw in raw_sheets.items():
@@ -299,16 +631,55 @@ def parse_excel(path: Path) -> dict[str, list]:
         if dataset is None:
             continue
 
-        # Supprimer les colonnes entièrement vides
+        if _normalize(sheet_name) == "clim":
+            start = len(results.get("clim", []))
+            rows = _parse_clim_sheet(df_raw, start_id=start)
+            if rows:
+                results.setdefault("clim", []).extend(rows)
+            continue
+
         df_raw = df_raw.dropna(axis=1, how="all")
 
-        rows = _parse_sheet_raw(df_raw, dataset)
+        # Cas spécial : Biens immobilisés contient 2 sections
+        if dataset == "biens_immobilises":
+            rows_biens, rows_leasing = _parse_biens_two_sections(df_raw)
+            if rows_biens:
+                # Ré-numéroter pour éviter les doublons si plusieurs appels
+                start = len(results.get("biens_immobilises", []))
+                for i, r in enumerate(rows_biens):
+                    r["id"] = start + i + 1
+                results.setdefault("biens_immobilises", []).extend(rows_biens)
+            if rows_leasing:
+                start = len(results.get("actifs_leasing", []))
+                for i, r in enumerate(rows_leasing):
+                    r["id"] = start + i + 1
+                results.setdefault("actifs_leasing", []).extend(rows_leasing)
+            continue
+
+        # Parsing standard
+        start_id = len(results.get(dataset, []))
+        forced_site = _site_from_sheet_name(sheet_name) if dataset == "achats_biens" else None
+        rows = _parse_sheet_raw(
+            df_raw,
+            dataset,
+            start_id=start_id,
+            forced_site=forced_site,
+        )
 
         if not rows:
             continue
 
-        results[dataset] = rows
+        # Ré-numéroter les IDs de façon continue si plusieurs feuilles → même dataset
+        offset = len(results.get(dataset, []))
+        for i, r in enumerate(rows):
+            r["id"] = offset + i + 1
 
+        results.setdefault(dataset, []).extend(rows)
+
+    # Sauvegarder chaque dataset en JSON
+    for dataset, rows in results.items():
+        rows = [_clean_record(row) for row in rows]
+        results[dataset] = rows
         out_path = DATA_DIR / f"{dataset}.json"
         with out_path.open("w", encoding="utf-8") as f:
             json.dump(rows, f, ensure_ascii=False, indent=2, default=str)
