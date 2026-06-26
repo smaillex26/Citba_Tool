@@ -8,7 +8,8 @@ Stratégie :
     2. Les lignes d'en-tête (ligne avec ≥2 noms de colonnes reconnus)
     3. Les lignes de données
   Cela gère le format réel : site écrit au-dessus de chaque mini-tableau.
-- Le résultat est sauvegardé en JSON dans backend/data/<dataset>.json.
+- Le résultat est retourné en mémoire. L'écriture JSON est optionnelle
+  et réservée aux diagnostics/tests.
 """
 
 import json
@@ -609,20 +610,22 @@ def _parse_clim_sheet(df_raw: pd.DataFrame, start_id: int = 0) -> list[dict]:
 
 # ── Fonctions publiques ────────────────────────────────────────────────────────
 
-def parse_excel(path: Path) -> dict[str, list]:
+def parse_excel(path: Path, write_json: bool = False) -> dict[str, list]:
     """
     Lit tous les onglets d'un fichier Excel, détecte les sites et les données,
-    sauvegarde chaque dataset en JSON dans backend/data/.
     Retourne un dict { dataset_name: [lignes] }.
+
+    write_json=True conserve un mode diagnostic historique. En production, la
+    persistance applicative passe par la base de données.
     """
     raw_sheets: dict[str, pd.DataFrame] = pd.read_excel(
         path, sheet_name=None, engine="openpyxl", header=None
     )
 
-    # Un nouvel import doit refléter uniquement le fichier déposé.
-    # On supprime donc les anciens JSON pour éviter les données obsolètes.
-    for dataset in OUTPUT_DATASETS:
-        (DATA_DIR / f"{dataset}.json").unlink(missing_ok=True)
+    if write_json:
+        # Mode diagnostic : le JSON reflète uniquement le fichier parsé.
+        for dataset in OUTPUT_DATASETS:
+            (DATA_DIR / f"{dataset}.json").unlink(missing_ok=True)
 
     results: dict[str, list] = {}
 
@@ -676,13 +679,14 @@ def parse_excel(path: Path) -> dict[str, list]:
 
         results.setdefault(dataset, []).extend(rows)
 
-    # Sauvegarder chaque dataset en JSON
     for dataset, rows in results.items():
         rows = [_clean_record(row) for row in rows]
         results[dataset] = rows
-        out_path = DATA_DIR / f"{dataset}.json"
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(rows, f, ensure_ascii=False, indent=2, default=str)
+
+        if write_json:
+            out_path = DATA_DIR / f"{dataset}.json"
+            with out_path.open("w", encoding="utf-8") as f:
+                json.dump(rows, f, ensure_ascii=False, indent=2, default=str)
 
     return results
 

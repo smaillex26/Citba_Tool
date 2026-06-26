@@ -105,8 +105,8 @@ def test_parse_energie_simple(tmp_path, monkeypatch):
     assert "pourcentage" not in eau
 
 
-def test_parse_energie_json_sauvegarde(tmp_path, monkeypatch):
-    """Le JSON doit être écrit sur disque après le parse."""
+def test_parse_energie_necrit_pas_json_par_defaut(tmp_path, monkeypatch):
+    """Le parser retourne les lignes en mémoire sans écrire de JSON par défaut."""
     import services.parser as parser_mod
     monkeypatch.setattr(parser_mod, "DATA_DIR", tmp_path)
 
@@ -118,7 +118,27 @@ def test_parse_energie_json_sauvegarde(tmp_path, monkeypatch):
     })
     xlsx = tmp_path / "test2.xlsx"
     xlsx.write_bytes(buf.read())
-    parse_excel(xlsx)
+    results = parse_excel(xlsx)
+
+    json_path = tmp_path / "energie.json"
+    assert not json_path.exists()
+    assert results["energie"][0]["energie"] == "Gasoil"
+
+
+def test_parse_energie_json_sauvegarde_mode_diagnostic(tmp_path, monkeypatch):
+    """Le JSON reste disponible si le mode diagnostic est explicitement demandé."""
+    import services.parser as parser_mod
+    monkeypatch.setattr(parser_mod, "DATA_DIR", tmp_path)
+
+    buf = make_excel({
+        "Energie": [
+            ["Site", "Energie", "Quantite", "Unite"],
+            ["Pontonx", "Gasoil", 1000, "L"],
+        ]
+    })
+    xlsx = tmp_path / "test2_debug.xlsx"
+    xlsx.write_bytes(buf.read())
+    parse_excel(xlsx, write_json=True)
 
     json_path = tmp_path / "energie.json"
     assert json_path.exists()
