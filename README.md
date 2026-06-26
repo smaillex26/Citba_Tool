@@ -51,6 +51,19 @@ Au démarrage, l'application crée automatiquement les tables nécessaires :
 
 Si `DATABASE_URL` n'est pas défini, l'application utilise une base locale SQLite dans `backend\data\citba.db`. C'est pratique pour le développement, mais PostgreSQL est recommandé pour l'installation entreprise.
 
+## Sauvegarde et restauration
+
+En mode SQLite local, la page `Paramètres` permet de télécharger une sauvegarde de `backend\data\citba.db` et de restaurer un fichier `.db`, `.sqlite` ou `.sqlite3`.
+
+Après restauration, redémarrez l'application si les données affichées ne changent pas immédiatement.
+
+En mode PostgreSQL, utilisez les outils standards de la base :
+
+```bat
+pg_dump -Fc -f citba_backup.dump citba_tool
+pg_restore -d citba_tool citba_backup.dump
+```
+
 ## Lancement production
 
 Après installation, lancer :

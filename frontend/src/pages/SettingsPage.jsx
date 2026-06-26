@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
 import SummaryCard from "../components/dashboard/SummaryCard.jsx";
 import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
-import { getSettings } from "../services/api.js";
+import { backupDownloadUrl, getSettings, restoreBackup } from "../services/api.js";
 
 function formatDate(value) {
   if (!value) return "Aucun import";
@@ -11,10 +11,27 @@ function formatDate(value) {
 
 function SettingsPage() {
   const [settings, setSettings] = useState(null);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("success");
 
   useEffect(() => {
     getSettings().then(setSettings);
   }, []);
+
+  async function handleRestore(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMessage("");
+    setMessageType("success");
+    const result = await restoreBackup(file);
+    if (result?.success === false) {
+      setMessageType("error");
+      setMessage(result.message);
+      return;
+    }
+    setMessage("Sauvegarde restaurée. Redémarrez l'application si les données affichées ne changent pas immédiatement.");
+    getSettings().then(setSettings);
+  }
 
   return (
     <PageContainer
@@ -33,6 +50,11 @@ function SettingsPage() {
         />
       ) : (
         <>
+          {message && (
+            <p className={`import-status-msg import-status-msg--${messageType}`}>
+              {message}
+            </p>
+          )}
           <div className="summary-grid">
             <SummaryCard label="Version" value={settings.app.version} helper={settings.app.name} accent="blue" />
             <SummaryCard
@@ -58,6 +80,17 @@ function SettingsPage() {
                   <dd>{settings.database.url}</dd>
                 </div>
               </dl>
+              {settings.database.type === "sqlite" ? (
+                <div className="inline-actions">
+                  <a className="button button--secondary" href={backupDownloadUrl()}>Télécharger sauvegarde</a>
+                  <label className="button button--primary">
+                    Restaurer
+                    <input type="file" accept=".db,.sqlite,.sqlite3" hidden onChange={handleRestore} />
+                  </label>
+                </div>
+              ) : (
+                <p>Pour PostgreSQL, utilisez `pg_dump` et `pg_restore` côté serveur.</p>
+              )}
             </article>
 
             <article className="settings-card">

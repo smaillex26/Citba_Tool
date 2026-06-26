@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routers import data, emission_factors, exports, settings, upload
+from routers import backup, data, emission_factors, exports, settings, upload
 from services.database import init_db, seed_emission_factors
 from services.emission_factors import default_emission_factors
 
@@ -40,6 +40,7 @@ app.include_router(data.router,   prefix="/api")
 app.include_router(emission_factors.router, prefix="/api")
 app.include_router(exports.router, prefix="/api")
 app.include_router(settings.router, prefix="/api")
+app.include_router(backup.router, prefix="/api")
 
 if FRONTEND_ASSETS.exists():
     app.mount("/assets", StaticFiles(directory=FRONTEND_ASSETS), name="assets")

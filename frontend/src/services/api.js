@@ -171,6 +171,23 @@ export async function getSettings() {
   }
 }
 
+export function backupDownloadUrl() {
+  return "/api/backup/download";
+}
+
+export async function restoreBackup(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    return await apiFetch("/backup/restore", { method: "POST", body: formData });
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof ApiError ? err.message : "Impossible de restaurer cette sauvegarde.",
+    };
+  }
+}
+
 /** Vérifie que le backend est accessible. */
 export async function checkHealth() {
   try {

@@ -32,6 +32,20 @@ def test_settings_endpoint():
     assert "latest" in body["imports"]
 
 
+def test_backup_download_endpoint():
+    res = client.get("/api/backup/download")
+    assert res.status_code == 200
+    assert "citba_backup_" in res.headers["content-disposition"]
+
+
+def test_restore_backup_rejects_wrong_extension():
+    res = client.post(
+        "/api/backup/restore",
+        files={"file": ("backup.txt", b"not a database", "text/plain")},
+    )
+    assert res.status_code == 400
+
+
 # ── Données : dataset inexistant ────────────────────────────────────────────
 
 def test_data_unknown_dataset():
