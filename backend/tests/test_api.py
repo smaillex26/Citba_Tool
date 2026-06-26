@@ -117,9 +117,13 @@ def test_create_and_update_emission_factor():
         "source": "Test",
         "year": 2026,
         "comment": "Créé par test",
+        "version": "2026-test",
+        "is_active": True,
     })
     assert create_res.status_code == 200
     factor = create_res.json()["factor"]
+    assert factor["version"] == "2026-test"
+    assert factor["is_active"] is True
 
     update_res = client.put(f"/api/emission-factors/{factor['id']}", json={
         "name": "Test facteur modifié",
@@ -130,11 +134,15 @@ def test_create_and_update_emission_factor():
         "source": "Test",
         "year": 2026,
         "comment": "Modifié par test",
+        "version": "2027-test",
+        "is_active": False,
     })
     assert update_res.status_code == 200
     updated = update_res.json()["factor"]
     assert updated["name"] == "Test facteur modifié"
     assert updated["factor_kg_co2e"] == 2.34
+    assert updated["version"] == "2027-test"
+    assert updated["is_active"] is False
 
 
 def test_recalculate_latest_import_with_current_factors():

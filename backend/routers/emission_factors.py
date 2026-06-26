@@ -23,6 +23,8 @@ class EmissionFactorPayload(BaseModel):
     source: str | None = None
     year: int | None = None
     comment: str | None = None
+    version: str = "default"
+    is_active: bool = True
 
 
 @router.get("/emission-factors")

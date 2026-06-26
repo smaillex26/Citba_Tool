@@ -13,6 +13,8 @@ const EMPTY_FACTOR = {
   source: "",
   year: "",
   comment: "",
+  version: "default",
+  is_active: true,
 };
 
 function EmissionFactorsPage() {
@@ -40,6 +42,8 @@ function EmissionFactorsPage() {
       ...factor,
       factor_kg_co2e: String(factor.factor_kg_co2e ?? ""),
       year: factor.year ? String(factor.year) : "",
+      version: factor.version ?? "default",
+      is_active: factor.is_active !== false,
     });
   }
 
@@ -133,6 +137,17 @@ function EmissionFactorsPage() {
               Année
               <input value={editing.year ?? ""} onChange={(e) => updateField("year", e.target.value)} />
             </label>
+            <label>
+              Version
+              <input value={editing.version ?? "default"} onChange={(e) => updateField("version", e.target.value)} />
+            </label>
+            <label>
+              Statut
+              <select value={editing.is_active ? "active" : "inactive"} onChange={(e) => updateField("is_active", e.target.value === "active")}>
+                <option value="active">Actif</option>
+                <option value="inactive">Inactif</option>
+              </select>
+            </label>
             <label className="factor-form__wide">
               Source
               <input value={editing.source ?? ""} onChange={(e) => updateField("source", e.target.value)} />
@@ -164,6 +179,8 @@ function EmissionFactorsPage() {
                   <th>Scope</th>
                   <th>Source</th>
                   <th className="col-right">Année</th>
+                  <th>Version</th>
+                  <th>Statut</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -177,6 +194,8 @@ function EmissionFactorsPage() {
                     <td>{factor.scope}</td>
                     <td>{factor.source}</td>
                     <td className="col-right">{factor.year}</td>
+                    <td>{factor.version}</td>
+                    <td>{factor.is_active ? "Actif" : "Inactif"}</td>
                     <td>
                       <button className="affaire-btn affaire-btn--view" onClick={() => handleEdit(factor)}>
                         Modifier

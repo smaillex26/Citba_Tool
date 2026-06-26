@@ -128,6 +128,8 @@ export async function saveEmissionFactor(factor) {
         source: factor.source || null,
         year: factor.year ? Number(factor.year) : null,
         comment: factor.comment || null,
+        version: factor.version || "default",
+        is_active: Boolean(factor.is_active),
       }),
     });
   } catch (err) {

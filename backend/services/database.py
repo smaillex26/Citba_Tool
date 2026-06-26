@@ -6,6 +6,7 @@ from urllib.parse import urlsplit, urlunsplit
 from typing import Iterator
 
 from sqlalchemy import (
+    Boolean,
     JSON,
     DateTime,
     Float,
@@ -16,7 +17,9 @@ from sqlalchemy import (
     create_engine,
     delete,
     func,
+    inspect as sqlalchemy_inspect,
     select,
+    text,
     update,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -89,6 +92,8 @@ class EmissionFactor(Base):
     source: Mapped[str | None] = mapped_column(String(255), nullable=True)
     year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version: Mapped[str] = mapped_column(String(64), nullable=False, default="default")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -112,6 +117,26 @@ class ExportRun(Base):
 
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
+    _ensure_emission_factor_columns()
+
+
+def _ensure_emission_factor_columns() -> None:
+    inspector = sqlalchemy_inspect(engine)
+    if "emission_factors" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("emission_factors")}
+    statements: list[str] = []
+    if "version" not in columns:
+        statements.append("ALTER TABLE emission_factors ADD COLUMN version VARCHAR(64) NOT NULL DEFAULT 'default'")
+    if "is_active" not in columns:
+        default = "TRUE" if engine.dialect.name != "sqlite" else "1"
+        statements.append(f"ALTER TABLE emission_factors ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT {default}")
+
+    if statements:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
 
 
 @contextmanager
@@ -319,23 +344,26 @@ def seed_emission_factors(factors: list[dict]) -> int:
         return len(factors)
 
 
+def _emission_factor_to_dict(row: EmissionFactor) -> dict:
+    return {
+        "id": row.id,
+        "name": row.name,
+        "category": row.category,
+        "unit": row.unit,
+        "factor_kg_co2e": row.factor_kg_co2e,
+        "scope": row.scope,
+        "source": row.source,
+        "year": row.year,
+        "comment": row.comment,
+        "version": row.version,
+        "is_active": row.is_active,
+    }
+
+
 def list_emission_factors() -> list[dict]:
     with get_session() as session:
         rows = session.scalars(select(EmissionFactor).order_by(EmissionFactor.name)).all()
-        return [
-            {
-                "id": row.id,
-                "name": row.name,
-                "category": row.category,
-                "unit": row.unit,
-                "factor_kg_co2e": row.factor_kg_co2e,
-                "scope": row.scope,
-                "source": row.source,
-                "year": row.year,
-                "comment": row.comment,
-            }
-            for row in rows
-        ]
+        return [_emission_factor_to_dict(row) for row in rows]
 
 
 def get_emission_factor(factor_id: int) -> dict | None:
@@ -343,17 +371,7 @@ def get_emission_factor(factor_id: int) -> dict | None:
         row = session.get(EmissionFactor, factor_id)
         if row is None:
             return None
-        return {
-            "id": row.id,
-            "name": row.name,
-            "category": row.category,
-            "unit": row.unit,
-            "factor_kg_co2e": row.factor_kg_co2e,
-            "scope": row.scope,
-            "source": row.source,
-            "year": row.year,
-            "comment": row.comment,
-        }
+        return _emission_factor_to_dict(row)
 
 
 def create_emission_factor(payload: dict) -> dict:
@@ -362,17 +380,7 @@ def create_emission_factor(payload: dict) -> dict:
         session.add(row)
         session.flush()
         session.refresh(row)
-        return {
-            "id": row.id,
-            "name": row.name,
-            "category": row.category,
-            "unit": row.unit,
-            "factor_kg_co2e": row.factor_kg_co2e,
-            "scope": row.scope,
-            "source": row.source,
-            "year": row.year,
-            "comment": row.comment,
-        }
+        return _emission_factor_to_dict(row)
 
 
 def update_emission_factor(factor_id: int, payload: dict) -> dict | None:
@@ -385,17 +393,7 @@ def update_emission_factor(factor_id: int, payload: dict) -> dict | None:
             setattr(row, key, value)
         session.flush()
         session.refresh(row)
-        return {
-            "id": row.id,
-            "name": row.name,
-            "category": row.category,
-            "unit": row.unit,
-            "factor_kg_co2e": row.factor_kg_co2e,
-            "scope": row.scope,
-            "source": row.source,
-            "year": row.year,
-            "comment": row.comment,
-        }
+        return _emission_factor_to_dict(row)
 
 
 RECALCULABLE_DATASETS = ["energie", "clim", "dechets", "deplacements_pro", "deplacements_dt"]
@@ -461,7 +459,7 @@ def recalculate_latest_import_with_factors() -> dict | None:
 
         factors = {
             row.name.lower(): row
-            for row in session.scalars(select(EmissionFactor)).all()
+            for row in session.scalars(select(EmissionFactor).where(EmissionFactor.is_active.is_(True))).all()
         }
         rows = session.scalars(
             select(DatasetRow)
