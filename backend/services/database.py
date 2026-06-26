@@ -2,6 +2,7 @@ import os
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 from typing import Iterator
 
 from sqlalchemy import (
@@ -203,6 +204,51 @@ def list_import_history(limit: int = 20) -> list[dict]:
             }
             for row in rows
         ]
+
+
+def _mask_database_url(url: str) -> str:
+    if url.startswith("sqlite"):
+        return url
+
+    parsed = urlsplit(url)
+    if not parsed.password:
+        return url
+
+    username = parsed.username or ""
+    hostname = parsed.hostname or ""
+    port = f":{parsed.port}" if parsed.port else ""
+    netloc = f"{username}:***@{hostname}{port}"
+    return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
+
+
+def get_system_status() -> dict:
+    with get_session() as session:
+        latest = session.scalar(
+            select(ImportRun).order_by(ImportRun.created_at.desc(), ImportRun.id.desc()).limit(1)
+        )
+        factor_count = session.scalar(select(func.count()).select_from(EmissionFactor))
+        import_count = session.scalar(select(func.count()).select_from(ImportRun))
+
+        return {
+            "database": {
+                "type": "postgresql" if DATABASE_URL.startswith("postgresql") else "sqlite",
+                "url": _mask_database_url(DATABASE_URL),
+                "is_default_sqlite": DATABASE_URL == DEFAULT_DATABASE_URL,
+            },
+            "imports": {
+                "count": import_count,
+                "latest": None if latest is None else {
+                    "id": latest.id,
+                    "filename": latest.filename,
+                    "created_at": latest.created_at.isoformat(),
+                    "total_rows": latest.total_rows,
+                    "dataset_count": latest.dataset_count,
+                },
+            },
+            "emission_factors": {
+                "count": factor_count,
+            },
+        }
 
 
 def delete_import(import_id: int) -> bool:

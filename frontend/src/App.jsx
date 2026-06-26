@@ -16,6 +16,7 @@ import DeplacementsProPage from "./pages/DeplacementsProPage.jsx";
 import DechetsPage from "./pages/DechetsPage.jsx";
 import TransportAvalPage from "./pages/TransportAvalPage.jsx";
 import EmissionFactorsPage from "./pages/EmissionFactorsPage.jsx";
+import SettingsPage from "./pages/SettingsPage.jsx";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             <Route path="/donnees/transport-aval" element={<TransportAvalPage />} />
             <Route path="/dashboard" element={<AffairesPage />} />
             <Route path="/facteurs-emission" element={<EmissionFactorsPage />} />
+            <Route path="/parametres" element={<SettingsPage />} />
           </Routes>
         </main>
       </div>

@@ -23,6 +23,15 @@ def test_health():
     assert res.json() == {"status": "ok"}
 
 
+def test_settings_endpoint():
+    res = client.get("/api/settings")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["app"]["version"]
+    assert body["database"]["type"] in ("sqlite", "postgresql")
+    assert "latest" in body["imports"]
+
+
 # ── Données : dataset inexistant ────────────────────────────────────────────
 
 def test_data_unknown_dataset():

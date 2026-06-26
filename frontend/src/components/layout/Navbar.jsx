@@ -24,6 +24,7 @@ const dataPages = [
 const endLinks = [
   { to: "/dashboard", label: "Tableau de bord" },
   { to: "/facteurs-emission", label: "Facteurs d'émission" },
+  { to: "/parametres", label: "Paramètres" },
 ];
 
 function Navbar() {

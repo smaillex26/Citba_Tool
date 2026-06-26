@@ -146,6 +146,14 @@ export function exportPdfUrl() {
   return "/api/exports/pdf";
 }
 
+export async function getSettings() {
+  try {
+    return await apiFetch("/settings");
+  } catch {
+    return null;
+  }
+}
+
 /** Vérifie que le backend est accessible. */
 export async function checkHealth() {
   try {
