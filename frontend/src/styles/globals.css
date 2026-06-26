@@ -1447,6 +1447,10 @@ select {
   color: #ef4444;
 }
 
+.import-status-msg--success {
+  color: var(--emerald-700);
+}
+
 .import-success {
   background: var(--green-50);
   border: 1px solid #bbf7d0;

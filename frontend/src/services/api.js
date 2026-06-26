@@ -138,6 +138,17 @@ export async function saveEmissionFactor(factor) {
   }
 }
 
+export async function recalculateLatestImport() {
+  try {
+    return await apiFetch("/emission-factors/recalculate-latest", { method: "POST" });
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof ApiError ? err.message : "Impossible de recalculer le dernier import.",
+    };
+  }
+}
+
 export function exportExcelUrl() {
   return "/api/exports/excel";
 }

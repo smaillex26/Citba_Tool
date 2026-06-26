@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from services.database import (
     create_emission_factor,
     list_emission_factors,
+    recalculate_latest_import_with_factors,
     replace_emission_factors,
     seed_emission_factors,
     update_emission_factor,
@@ -51,3 +52,12 @@ def update_factor(factor_id: int, payload: EmissionFactorPayload):
     if factor is None:
         raise HTTPException(status_code=404, detail="Facteur d'émission introuvable.")
     return {"factor": factor}
+
+
+@router.post("/emission-factors/recalculate-latest")
+def recalculate_latest_import():
+    """Recalcule le dernier import avec les facteurs d'émission actuellement en base."""
+    result = recalculate_latest_import_with_factors()
+    if result is None:
+        raise HTTPException(status_code=404, detail="Aucun import disponible à recalculer.")
+    return {"status": "ok", **result}

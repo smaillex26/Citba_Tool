@@ -137,6 +137,33 @@ def test_create_and_update_emission_factor():
     assert updated["factor_kg_co2e"] == 2.34
 
 
+def test_recalculate_latest_import_with_current_factors():
+    from services.database import delete_import, get_latest_dataset, replace_latest_import
+
+    summary = {
+        "total_rows": 1,
+        "dataset_count": 1,
+        "datasets": [{"key": "energie", "label": "Energie", "rows": 1}],
+    }
+    import_run = replace_latest_import(
+        "test-recalcul.xlsx",
+        {"energie": [{"site": "Arthez", "energie": "Électricité", "quantite": 10, "kgCO2e": 999}]},
+        summary,
+    )
+
+    try:
+        res = client.post("/api/emission-factors/recalculate-latest")
+        assert res.status_code == 200
+        body = res.json()
+        assert body["updated_rows"] == 1
+
+        rows = get_latest_dataset("energie")
+        assert rows[0]["feKgCO2eUnite"] == 0.0599
+        assert rows[0]["kgCO2e"] == 0.6
+    finally:
+        delete_import(import_run.id)
+
+
 # ── Upload ──────────────────────────────────────────────────────────────────
 
 def _make_excel_bytes(sheet_name: str = "Energie") -> bytes:

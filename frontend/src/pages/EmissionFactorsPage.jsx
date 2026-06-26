@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PageContainer from "../components/layout/PageContainer.jsx";
 import ImportRequiredState from "../components/data/ImportRequiredState.jsx";
 import Button from "../components/ui/Button.jsx";
-import { listEmissionFactors, saveEmissionFactor } from "../services/api.js";
+import { listEmissionFactors, recalculateLatestImport, saveEmissionFactor } from "../services/api.js";
 
 const EMPTY_FACTOR = {
   name: "",
@@ -19,6 +19,7 @@ function EmissionFactorsPage() {
   const [factors, setFactors] = useState(null);
   const [editing, setEditing] = useState(null);
   const [message, setMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   function loadFactors() {
     return listEmissionFactors().then((data) => {
@@ -34,6 +35,7 @@ function EmissionFactorsPage() {
 
   function handleEdit(factor) {
     setMessage("");
+    setSuccessMessage("");
     setEditing({
       ...factor,
       factor_kg_co2e: String(factor.factor_kg_co2e ?? ""),
@@ -43,6 +45,7 @@ function EmissionFactorsPage() {
 
   function handleNew() {
     setMessage("");
+    setSuccessMessage("");
     setEditing(EMPTY_FACTOR);
   }
 
@@ -53,6 +56,7 @@ function EmissionFactorsPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
+    setSuccessMessage("");
 
     if (!editing?.name?.trim()) {
       setMessage("Le nom du facteur est obligatoire.");
@@ -71,16 +75,36 @@ function EmissionFactorsPage() {
     }
 
     setEditing(null);
+    setSuccessMessage("Facteur d'émission enregistré.");
     await loadFactors();
+  }
+
+  async function handleRecalculate() {
+    setMessage("");
+    setSuccessMessage("");
+    const result = await recalculateLatestImport();
+    if (result?.success === false) {
+      setMessage(result.message);
+      return;
+    }
+    setSuccessMessage(
+      `Dernier import recalculé : ${result.updated_rows} ligne(s) mise(s) à jour, ${result.skipped_rows} ignorée(s).`,
+    );
   }
 
   return (
     <PageContainer
       title="Facteurs d'émission"
       description="Référentiel local utilisé pour compléter les calculs lorsque le fichier Excel ne fournit pas de facteur."
-      actions={<Button onClick={handleNew}>Ajouter un facteur</Button>}
+      actions={
+        <div className="inline-actions">
+          <Button variant="secondary" onClick={handleRecalculate}>Recalculer le dernier import</Button>
+          <Button onClick={handleNew}>Ajouter un facteur</Button>
+        </div>
+      }
     >
       {message && <p className="import-status-msg import-status-msg--error">{message}</p>}
+      {successMessage && <p className="import-status-msg import-status-msg--success">{successMessage}</p>}
 
       {editing && (
         <form className="factor-form" onSubmit={handleSubmit}>

@@ -384,6 +384,62 @@ def update_emission_factor(factor_id: int, payload: dict) -> dict | None:
         }
 
 
+def recalculate_latest_import_with_factors() -> dict | None:
+    """Recalcule les lignes énergie/clim du dernier import avec les FE en base."""
+    with get_session() as session:
+        import_id = latest_import_id(session)
+        if import_id is None:
+            return None
+
+        factors = {
+            row.name.lower(): row
+            for row in session.scalars(select(EmissionFactor)).all()
+        }
+        rows = session.scalars(
+            select(DatasetRow)
+            .where(DatasetRow.import_id == import_id, DatasetRow.dataset.in_(["energie", "clim"]))
+            .order_by(DatasetRow.row_index)
+        ).all()
+
+        updated = 0
+        skipped = 0
+        for row in rows:
+            payload = dict(row.payload)
+            energy_name = str(payload.get("energie") or "").strip()
+            factor = factors.get(energy_name.lower())
+
+            # Les lignes Clim préfixent souvent la section avant le fluide.
+            if factor is None:
+                factor = next(
+                    (candidate for key, candidate in factors.items() if key and key in energy_name.lower()),
+                    None,
+                )
+
+            try:
+                quantity = float(payload.get("quantite") or 0)
+            except (TypeError, ValueError):
+                quantity = 0
+
+            if factor is None or quantity <= 0:
+                skipped += 1
+                continue
+
+            payload["feKgCO2eUnite"] = factor.factor_kg_co2e
+            payload["kgCO2e"] = round(quantity * factor.factor_kg_co2e, 2)
+            payload["facteurEmission"] = factor.source
+            payload["categorieEmission"] = factor.category
+            payload["scope"] = factor.scope
+            payload["unite"] = payload.get("unite") or factor.unit
+            row.payload = payload
+            updated += 1
+
+        return {
+            "import_id": import_id,
+            "updated_rows": updated,
+            "skipped_rows": skipped,
+        }
+
+
 def replace_emission_factors(factors: list[dict]) -> int:
     with get_session() as session:
         session.execute(delete(EmissionFactor))
