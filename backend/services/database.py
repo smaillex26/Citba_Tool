@@ -21,6 +21,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
+from services.calculator import attach_calculation_metadata, source_values_snapshot
+
 DATA_DIR = Path(__file__).parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
@@ -417,6 +419,7 @@ def recalculate_latest_import_with_factors() -> dict | None:
         skipped = 0
         for row in rows:
             payload = dict(row.payload)
+            source_values = payload.get("sourceValues") or source_values_snapshot(payload)
             energy_name = str(payload.get("energie") or "").strip()
             factor = factors.get(energy_name.lower())
 
@@ -442,6 +445,19 @@ def recalculate_latest_import_with_factors() -> dict | None:
             payload["categorieEmission"] = factor.category
             payload["scope"] = factor.scope
             payload["unite"] = payload.get("unite") or factor.unit
+            attach_calculation_metadata(
+                payload,
+                source_values=source_values,
+                kg_co2e=payload["kgCO2e"],
+                fe_kg_co2e_unite=payload["feKgCO2eUnite"],
+                factor_name=factor.name,
+                factor_source=factor.source,
+                factor_category=factor.category,
+                factor_scope=factor.scope,
+                factor_unit=factor.unit,
+                method="current_factor",
+                calculated_by="recalculate_latest_import",
+            )
             row.payload = payload
             updated += 1
 

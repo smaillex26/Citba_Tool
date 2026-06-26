@@ -43,6 +43,10 @@ def test_enrichir_ligne_eau():
     assert row["scope"]            == "3 amont"
     assert row["categorieEmission"] == "Produits et services achetés"
     assert row["feKgCO2eUnite"]    == pytest.approx(0.13)
+    assert row["sourceValues"] == {"energie": "Eau", "quantite": 16}
+    assert row["calculation"]["method"] == "internal_factor"
+    assert row["calculation"]["kgCO2e"] == pytest.approx(2.08, rel=1e-4)
+    assert row["calculation"]["factorName"] == "Eau"
 
 
 def test_enrichir_ligne_electricite():
@@ -67,3 +71,17 @@ def test_enrichir_ligne_ne_remplace_pas_valeurs_existantes():
         "scope": "custom-scope",
     })
     assert row["scope"] == "custom-scope"
+
+
+def test_enrichir_ligne_trace_valeur_excel():
+    row = enrichir_ligne({
+        "energie": "Électricité",
+        "quantite": 10,
+        "feKgCO2eUnite": 0.5,
+        "kgCO2e": 5,
+    })
+    assert row["sourceValues"]["feKgCO2eUnite"] == 0.5
+    assert row["sourceValues"]["kgCO2e"] == 5
+    assert row["calculation"]["method"] == "excel_value"
+    assert row["calculation"]["feKgCO2eUnite"] == 0.5
+    assert row["calculation"]["calculatedBy"] == "import"

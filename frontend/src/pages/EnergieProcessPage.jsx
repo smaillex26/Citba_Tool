@@ -36,7 +36,7 @@ function EnergieProcessPage() {
     });
   }, []);
 
-  const rows = apiRows ?? [];
+  const rows = useMemo(() => apiRows ?? [], [apiRows]);
 
   /* Listes de filtres dérivées dynamiquement */
   const SITES      = useMemo(() => unique(rows, "site"),              [rows]);

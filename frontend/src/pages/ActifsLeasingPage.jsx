@@ -21,7 +21,7 @@ function ActifsLeasingPage() {
     });
   }, []);
 
-  const rows  = apiRows ?? [];
+  const rows  = useMemo(() => apiRows ?? [], [apiRows]);
   const durees = useMemo(() => uniqueValues(rows, "dureeLLD"), [rows]);
 
   const filtered = useMemo(() => {

@@ -160,6 +160,10 @@ def test_recalculate_latest_import_with_current_factors():
         rows = get_latest_dataset("energie")
         assert rows[0]["feKgCO2eUnite"] == 0.0599
         assert rows[0]["kgCO2e"] == 0.6
+        assert rows[0]["sourceValues"]["kgCO2e"] == 999
+        assert rows[0]["calculation"]["method"] == "current_factor"
+        assert rows[0]["calculation"]["factorName"] == "Électricité"
+        assert rows[0]["calculation"]["calculatedBy"] == "recalculate_latest_import"
     finally:
         delete_import(import_run.id)
 

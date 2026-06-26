@@ -22,7 +22,7 @@ function DechetsPage() {
     });
   }, []);
 
-  const rows  = apiRows ?? [];
+  const rows  = useMemo(() => apiRows ?? [], [apiRows]);
   const sites = useMemo(() => uniqueValues(rows, "site"),           [rows]);
   const modes = useMemo(() => uniqueValues(rows, "modeTraitement"), [rows]);
 

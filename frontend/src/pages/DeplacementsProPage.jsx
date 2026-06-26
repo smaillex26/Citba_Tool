@@ -22,7 +22,7 @@ function DeplacementsProPage() {
     });
   }, []);
 
-  const rows   = apiRows ?? [];
+  const rows   = useMemo(() => apiRows ?? [], [apiRows]);
   const sites  = useMemo(() => uniqueValues(rows, "site"),             [rows]);
   const moyens = useMemo(() => uniqueValues(rows, "moyenDeplacement"), [rows]);
 

@@ -24,7 +24,7 @@ function AffairesPage() {
     });
   }, []);
 
-  const groups = apiGroups ?? [];
+  const groups = useMemo(() => apiGroups ?? [], [apiGroups]);
   const totalKgCO2e = useMemo(
     () => groups.reduce(
       (sum, group) => sum + group.values.reduce((groupSum, value) => groupSum + value, 0),

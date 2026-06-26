@@ -36,7 +36,7 @@ function ClimPage() {
     });
   }, []);
 
-  const rows = apiRows ?? [];
+  const rows = useMemo(() => apiRows ?? [], [apiRows]);
   const sites = useMemo(() => uniqueValues(rows, "site"), [rows]);
   const sections = useMemo(() => uniqueValues(rows, "commentaire"), [rows]);
 

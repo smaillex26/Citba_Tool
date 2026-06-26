@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from services.calculator import enrichir_ligne
+from services.calculator import attach_calculation_metadata, enrichir_ligne, source_values_snapshot
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -356,6 +356,10 @@ def _row_non_null(row_values: list) -> list:
 
 def _safe_value(value):
     """Convertit les NaN pandas/numpy en None pour produire du JSON strict."""
+    if isinstance(value, dict):
+        return {key: _safe_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_safe_value(item) for item in value]
     if isinstance(value, float) and value != value:
         return None
     return value
@@ -590,7 +594,7 @@ def _parse_clim_sheet(df_raw: pd.DataFrame, start_id: int = 0) -> list[dict]:
             continue
 
         id_counter += 1
-        rows.append(_clean_record({
+        record = {
             "id": id_counter,
             "site": current_site,
             "energie": f"{current_section} - {first}",
@@ -603,7 +607,21 @@ def _parse_clim_sheet(df_raw: pd.DataFrame, start_id: int = 0) -> list[dict]:
             "commentaire": current_section,
             "kgCO2e": kg_co2e,
             "pourcentage": _to_float(values[14] if len(values) > 14 else None),
-        }))
+        }
+        attach_calculation_metadata(
+            record,
+            source_values=source_values_snapshot(record),
+            kg_co2e=record["kgCO2e"],
+            fe_kg_co2e_unite=record["feKgCO2eUnite"],
+            factor_name=record["energie"],
+            factor_source=record.get("facteurEmission"),
+            factor_category=record.get("categorieEmission"),
+            factor_scope=record.get("scope"),
+            factor_unit=record.get("unite"),
+            method="excel_value",
+            calculated_by="import",
+        )
+        rows.append(_clean_record(record))
 
     return rows
 

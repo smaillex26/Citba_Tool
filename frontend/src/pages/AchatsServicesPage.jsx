@@ -22,7 +22,7 @@ function AchatsServicesPage() {
     });
   }, []);
 
-  const rows       = apiRows ?? [];
+  const rows       = useMemo(() => apiRows ?? [], [apiRows]);
   const sites      = useMemo(() => uniqueValues(rows, "site"),           [rows]);
   const prestations= useMemo(() => uniqueValues(rows, "typePrestation"), [rows]);
 

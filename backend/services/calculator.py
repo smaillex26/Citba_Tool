@@ -5,6 +5,59 @@ Ce fichier sera enrichi au fur et à mesure que de nouvelles
 sources/catégories seront intégrées.
 """
 import re
+from datetime import datetime, timezone
+
+CALCULATION_TRACE_KEYS = (
+    "energie",
+    "quantite",
+    "unite",
+    "facteurEmission",
+    "feKgCO2eUnite",
+    "categorieEmission",
+    "scope",
+    "kgCO2e",
+    "pourcentage",
+)
+
+
+def source_values_snapshot(row: dict) -> dict:
+    """Capture les valeurs d'origine avant enrichissement/recalcul."""
+    return {
+        key: row.get(key)
+        for key in CALCULATION_TRACE_KEYS
+        if key in row
+    }
+
+
+def attach_calculation_metadata(
+    row: dict,
+    *,
+    source_values: dict | None = None,
+    kg_co2e: float | None,
+    fe_kg_co2e_unite: float | None,
+    factor_name: str | None,
+    factor_source: str | None,
+    method: str,
+    calculated_by: str,
+    factor_category: str | None = None,
+    factor_scope: str | None = None,
+    factor_unit: str | None = None,
+) -> dict:
+    """Ajoute les métadonnées qui distinguent brut Excel et calcul applicatif."""
+    row["sourceValues"] = source_values if source_values is not None else row.get("sourceValues") or source_values_snapshot(row)
+    row["calculation"] = {
+        "kgCO2e": kg_co2e,
+        "feKgCO2eUnite": fe_kg_co2e_unite,
+        "factorName": factor_name,
+        "factorSource": factor_source,
+        "factorCategory": factor_category,
+        "factorScope": factor_scope,
+        "factorUnit": factor_unit,
+        "method": method,
+        "calculatedBy": calculated_by,
+        "calculatedAt": datetime.now(timezone.utc).isoformat(),
+    }
+    return row
 
 # Alias d'énergie : variantes d'orthographe → clé exacte dans FACTEURS_ENERGIE
 # Permet de tolérer les accents manquants, majuscules, espaces différents, etc.
@@ -253,6 +306,7 @@ def enrichir_ligne(row: dict) -> dict:
          quantite × FE_excel.
       3. FE du référentiel interne → on calcule quantite × FE_ref.
     """
+    source_values = source_values_snapshot(row)
     energie_raw = row.get("energie", "") or ""
     energie = _normalise_energie(str(energie_raw))
     if energie != energie_raw:
@@ -276,13 +330,41 @@ def enrichir_ligne(row: dict) -> dict:
         # kgCO2e : valeur Excel en priorité (si présente et > 0)
         kg_excel = _to_float_safe(row.get("kgCO2e", 0))
         if kg_excel > 0:
+            method = "excel_value"
             row["kgCO2e"] = round(kg_excel, 2)
         else:
+            method = "excel_factor" if fe_excel > 0 else "internal_factor"
             row["kgCO2e"] = round(quantite * fe_eff, 2)
+        attach_calculation_metadata(
+            row,
+            source_values=source_values,
+            kg_co2e=row["kgCO2e"],
+            fe_kg_co2e_unite=fe_eff,
+            factor_name=energie,
+            factor_source=row.get("facteurEmission"),
+            factor_category=row.get("categorieEmission"),
+            factor_scope=row.get("scope"),
+            factor_unit=row.get("unite"),
+            method=method,
+            calculated_by="import",
+        )
     else:
         # Énergie non référencée : normaliser les valeurs numériques présentes
         if "kgCO2e" in row:
             row["kgCO2e"] = _to_float_safe(row["kgCO2e"])
         if "feKgCO2eUnite" in row:
             row["feKgCO2eUnite"] = _to_float_safe(row["feKgCO2eUnite"])
+        attach_calculation_metadata(
+            row,
+            source_values=source_values,
+            kg_co2e=row.get("kgCO2e"),
+            fe_kg_co2e_unite=row.get("feKgCO2eUnite"),
+            factor_name=energie or None,
+            factor_source=row.get("facteurEmission"),
+            factor_category=row.get("categorieEmission"),
+            factor_scope=row.get("scope"),
+            factor_unit=row.get("unite"),
+            method="excel_value" if "kgCO2e" in row else "unresolved",
+            calculated_by="import",
+        )
     return row

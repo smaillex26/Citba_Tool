@@ -22,7 +22,7 @@ function TransportAvalPage() {
     });
   }, []);
 
-  const rows  = apiRows ?? [];
+  const rows  = useMemo(() => apiRows ?? [], [apiRows]);
   const sites = useMemo(() => uniqueValues(rows, "site"),          [rows]);
   const types = useMemo(() => uniqueValues(rows, "typeTransport"), [rows]);
 

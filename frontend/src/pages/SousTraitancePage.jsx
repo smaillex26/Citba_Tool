@@ -22,7 +22,7 @@ function SousTraitancePage() {
     });
   }, []);
 
-  const rows    = apiRows ?? [];
+  const rows    = useMemo(() => apiRows ?? [], [apiRows]);
   const sites   = useMemo(() => uniqueValues(rows, "site"),    [rows]);
   const societes= useMemo(() => uniqueValues(rows, "societe"), [rows]);
 

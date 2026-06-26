@@ -16,7 +16,7 @@ function BiensImmobilisesPage() {
     });
   }, []);
 
-  const rows = apiRows ?? [];
+  const rows = useMemo(() => apiRows ?? [], [apiRows]);
 
   const totalSurface = useMemo(
     () => rows.reduce((s, r) => s + (r.surfaceTerre ?? 0), 0),
