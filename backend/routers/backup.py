@@ -2,9 +2,10 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
+from services.auth import require_roles
 from services.database import DATABASE_URL, DEFAULT_DATABASE_URL, DATA_DIR, engine, init_db
 
 router = APIRouter(tags=["Sauvegarde"])
@@ -20,7 +21,7 @@ def _sqlite_db_path() -> Path:
 
 
 @router.get("/backup/download")
-def download_backup():
+def download_backup(user: dict = Depends(require_roles("admin"))):
     """Télécharge une copie de la base SQLite locale."""
     db_path = _sqlite_db_path()
     if not db_path.exists():
@@ -35,7 +36,7 @@ def download_backup():
 
 
 @router.post("/backup/restore")
-async def restore_backup(file: UploadFile = File(...)):
+async def restore_backup(file: UploadFile = File(...), user: dict = Depends(require_roles("admin"))):
     """Remplace la base SQLite locale par une sauvegarde fournie."""
     db_path = _sqlite_db_path()
     filename = file.filename or ""

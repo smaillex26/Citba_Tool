@@ -5,7 +5,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routers import backup, data, emission_factors, exports, settings, upload
+from routers import auth, backup, data, emission_factors, exports, settings, upload
+from services.auth import bootstrap_admin_user
 from services.database import init_db, seed_emission_factors
 from services.emission_factors import default_emission_factors
 
@@ -18,6 +19,7 @@ FRONTEND_ASSETS = FRONTEND_DIST / "assets"
 async def lifespan(app: FastAPI):
     init_db()
     seed_emission_factors(default_emission_factors())
+    bootstrap_admin_user()
     yield
 
 app = FastAPI(
@@ -36,6 +38,7 @@ app.add_middleware(
 )
 
 app.include_router(upload.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
 app.include_router(data.router,   prefix="/api")
 app.include_router(emission_factors.router, prefix="/api")
 app.include_router(exports.router, prefix="/api")

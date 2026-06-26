@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Navbar from "./components/layout/Navbar.jsx";
+import { clearAuthToken, getCurrentUser } from "./services/api.js";
 import HomePage from "./pages/HomePage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
 import ImportHistoryPage from "./pages/ImportHistoryPage.jsx";
 import DeplacementsDTPage from "./pages/DeplacementsDTPage.jsx";
@@ -19,10 +22,33 @@ import EmissionFactorsPage from "./pages/EmissionFactorsPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCurrentUser().then((result) => {
+      setUser(result?.user ?? null);
+      setLoading(false);
+    });
+  }, []);
+
+  function handleLogout() {
+    clearAuthToken();
+    setUser(null);
+  }
+
+  if (loading) {
+    return <div className="app-loading">Chargement...</div>;
+  }
+
+  if (!user) {
+    return <LoginPage onLogin={setUser} />;
+  }
+
   return (
     <BrowserRouter>
       <div className="app-shell">
-        <Navbar />
+        <Navbar user={user} onLogout={handleLogout} />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<HomePage />} />

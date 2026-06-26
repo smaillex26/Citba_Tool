@@ -27,7 +27,7 @@ const endLinks = [
   { to: "/parametres", label: "Paramètres" },
 ];
 
-function Navbar() {
+function Navbar({ user, onLogout }) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -106,6 +106,10 @@ function Navbar() {
               {link.label}
             </NavLink>
           ))}
+          <div className="site-nav__user">
+            <span>{user.email} · {user.role}</span>
+            <button onClick={onLogout}>Déconnexion</button>
+          </div>
         </nav>
       </div>
     </header>

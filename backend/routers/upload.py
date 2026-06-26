@@ -2,7 +2,8 @@ import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from services.auth import require_roles
 from services.database import replace_latest_import
 from services.parser import parse_excel, inspect_excel
 
@@ -48,6 +49,7 @@ DATASET_REQUIRED_COLUMNS = {
 async def upload_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    user: dict = Depends(require_roles("contributor", "admin")),
 ):
     """Reçoit un fichier Excel et lance le traitement en arrière-plan."""
     filename = file.filename or ""

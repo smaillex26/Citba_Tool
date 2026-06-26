@@ -10,8 +10,25 @@ class ApiError extends Error {
   }
 }
 
+const TOKEN_KEY = "citba_auth_token";
+
+export function getAuthToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 async function apiFetch(path, options = {}) {
-  const res = await fetch(`/api${path}`, options);
+  const headers = new Headers(options.headers ?? {});
+  const token = getAuthToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const res = await fetch(`/api${path}`, { ...options, headers });
   if (!res.ok) {
     let detail = `Erreur ${res.status} sur ${path}`;
     try {
@@ -23,6 +40,33 @@ async function apiFetch(path, options = {}) {
     throw new ApiError(detail, res.status);
   }
   return res.json();
+}
+
+export async function login(email, password) {
+  try {
+    const result = await apiFetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    setAuthToken(result.token);
+    return result;
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof ApiError ? err.message : "Connexion impossible.",
+    };
+  }
+}
+
+export async function getCurrentUser() {
+  if (!getAuthToken()) return null;
+  try {
+    return await apiFetch("/auth/me");
+  } catch {
+    clearAuthToken();
+    return null;
+  }
 }
 
 // ── Upload ────────────────────────────────────────────────────────────────────

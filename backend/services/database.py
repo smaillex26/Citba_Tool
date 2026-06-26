@@ -115,6 +115,21 @@ class ExportRun(Base):
     )
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(32), nullable=False, default="reader")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     _ensure_emission_factor_columns()
@@ -139,6 +154,16 @@ def _ensure_emission_factor_columns() -> None:
                 connection.execute(text(statement))
 
 
+def _user_to_dict(row: User) -> dict:
+    return {
+        "id": row.id,
+        "email": row.email,
+        "role": row.role,
+        "is_active": row.is_active,
+        "created_at": row.created_at.isoformat(),
+    }
+
+
 @contextmanager
 def get_session() -> Iterator[Session]:
     init_db()
@@ -151,6 +176,31 @@ def get_session() -> Iterator[Session]:
         raise
     finally:
         session.close()
+
+
+def seed_admin_user(email: str, password_hash: str) -> bool:
+    with get_session() as session:
+        existing = session.scalar(select(func.count()).select_from(User))
+        if existing:
+            return False
+        session.add(User(email=email.lower(), password_hash=password_hash, role="admin", is_active=True))
+        return True
+
+
+def get_user_by_email(email: str) -> dict | None:
+    with get_session() as session:
+        row = session.scalar(select(User).where(User.email == email.lower()))
+        if row is None:
+            return None
+        user = _user_to_dict(row)
+        user["password_hash"] = row.password_hash
+        return user
+
+
+def get_user_by_id(user_id: int) -> dict | None:
+    with get_session() as session:
+        row = session.get(User, user_id)
+        return None if row is None else _user_to_dict(row)
 
 
 def replace_latest_import(filename: str, results: dict[str, list], summary: dict) -> ImportRun:

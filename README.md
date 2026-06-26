@@ -51,6 +51,20 @@ Au démarrage, l'application crée automatiquement les tables nécessaires :
 
 Si `DATABASE_URL` n'est pas défini, l'application utilise une base locale SQLite dans `backend\data\citba.db`. C'est pratique pour le développement, mais PostgreSQL est recommandé pour l'installation entreprise.
 
+## Authentification locale
+
+Au premier démarrage, l'application crée un utilisateur administrateur si aucun utilisateur n'existe encore.
+
+Variables disponibles :
+
+```bat
+set CITBA_ADMIN_EMAIL=admin@entreprise.local
+set CITBA_ADMIN_PASSWORD=mot_de_passe_solide
+set AUTH_SECRET=chaine_secrete_longue
+```
+
+Sans configuration, le compte local par défaut est `admin@citba.local` avec le mot de passe `admin`. Changez ces valeurs avant une installation réelle en entreprise.
+
 ## Sauvegarde et restauration
 
 En mode SQLite local, la page `Paramètres` permet de télécharger une sauvegarde de `backend\data\citba.db` et de restaurer un fichier `.db`, `.sqlite` ou `.sqlite3`.

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from services.auth import require_roles
 from services.database import (
     create_emission_factor,
     list_emission_factors,
@@ -35,20 +36,20 @@ def get_emission_factors():
 
 
 @router.post("/emission-factors/reset")
-def reset_emission_factors():
+def reset_emission_factors(user: dict = Depends(require_roles("admin"))):
     """Réinitialise la table avec les facteurs internes actuels."""
     count = replace_emission_factors(default_emission_factors())
     return {"status": "ok", "count": count}
 
 
 @router.post("/emission-factors")
-def create_factor(payload: EmissionFactorPayload):
+def create_factor(payload: EmissionFactorPayload, user: dict = Depends(require_roles("admin"))):
     """Crée un nouveau facteur d'émission."""
     return {"factor": create_emission_factor(payload.model_dump())}
 
 
 @router.put("/emission-factors/{factor_id}")
-def update_factor(factor_id: int, payload: EmissionFactorPayload):
+def update_factor(factor_id: int, payload: EmissionFactorPayload, user: dict = Depends(require_roles("admin"))):
     """Modifie un facteur d'émission existant."""
     factor = update_emission_factor(factor_id, payload.model_dump())
     if factor is None:
@@ -57,7 +58,7 @@ def update_factor(factor_id: int, payload: EmissionFactorPayload):
 
 
 @router.post("/emission-factors/recalculate-latest")
-def recalculate_latest_import():
+def recalculate_latest_import(user: dict = Depends(require_roles("contributor", "admin"))):
     """Recalcule le dernier import avec les facteurs d'émission actuellement en base."""
     result = recalculate_latest_import_with_factors()
     if result is None:

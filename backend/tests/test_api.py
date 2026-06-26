@@ -15,6 +15,15 @@ from main import app
 client = TestClient(app)
 
 
+def _auth_headers():
+    res = client.post("/api/auth/login", json={
+        "email": "admin@citba.local",
+        "password": "admin",
+    })
+    assert res.status_code == 200
+    return {"Authorization": f"Bearer {res.json()['token']}"}
+
+
 # ── Health ─────────────────────────────────────────────────────────────────
 
 def test_health():
@@ -32,8 +41,14 @@ def test_settings_endpoint():
     assert "latest" in body["imports"]
 
 
+def test_auth_me_endpoint():
+    res = client.get("/api/auth/me", headers=_auth_headers())
+    assert res.status_code == 200
+    assert res.json()["user"]["role"] == "admin"
+
+
 def test_backup_download_endpoint():
-    res = client.get("/api/backup/download")
+    res = client.get("/api/backup/download", headers=_auth_headers())
     assert res.status_code == 200
     assert "citba_backup_" in res.headers["content-disposition"]
 
@@ -42,6 +57,7 @@ def test_restore_backup_rejects_wrong_extension():
     res = client.post(
         "/api/backup/restore",
         files={"file": ("backup.txt", b"not a database", "text/plain")},
+        headers=_auth_headers(),
     )
     assert res.status_code == 400
 
@@ -109,7 +125,7 @@ def test_import_history_endpoint():
 
 
 def test_delete_unknown_import():
-    res = client.delete("/api/imports/999999")
+    res = client.delete("/api/imports/999999", headers=_auth_headers())
     assert res.status_code == 404
 
 
@@ -133,7 +149,7 @@ def test_create_and_update_emission_factor():
         "comment": "Créé par test",
         "version": "2026-test",
         "is_active": True,
-    })
+    }, headers=_auth_headers())
     assert create_res.status_code == 200
     factor = create_res.json()["factor"]
     assert factor["version"] == "2026-test"
@@ -150,7 +166,7 @@ def test_create_and_update_emission_factor():
         "comment": "Modifié par test",
         "version": "2027-test",
         "is_active": False,
-    })
+    }, headers=_auth_headers())
     assert update_res.status_code == 200
     updated = update_res.json()["factor"]
     assert updated["name"] == "Test facteur modifié"
@@ -210,7 +226,7 @@ def test_recalculate_latest_import_with_current_factors():
     )
 
     try:
-        res = client.post("/api/emission-factors/recalculate-latest")
+        res = client.post("/api/emission-factors/recalculate-latest", headers=_auth_headers())
         assert res.status_code == 200
         body = res.json()
         assert body["updated_rows"] == 3
@@ -258,6 +274,7 @@ def test_upload_wrong_extension():
     res = client.post(
         "/api/upload",
         files={"file": ("data.csv", b"col1,col2\n1,2", "text/csv")},
+        headers=_auth_headers(),
     )
     assert res.status_code == 400
     assert "Excel" in res.json()["detail"]
@@ -275,6 +292,7 @@ def test_upload_valid_excel(tmp_path, monkeypatch):
     res = client.post(
         "/api/upload",
         files={"file": ("test.xlsx", excel_bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+        headers=_auth_headers(),
     )
     assert res.status_code == 200
     body = res.json()
@@ -314,7 +332,7 @@ def test_upload_valid_excel(tmp_path, monkeypatch):
         assert report_res.headers["content-type"].startswith("text/csv")
         assert "Rapport d'import" in report_res.text
 
-        delete_res = client.delete(f"/api/imports/{body['import_id']}")
+        delete_res = client.delete(f"/api/imports/{body['import_id']}", headers=_auth_headers())
         assert delete_res.status_code == 200
         assert delete_res.json()["deleted"] == body["import_id"]
 

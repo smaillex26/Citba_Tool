@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from services.auth import require_roles
 from services.database import (
     delete_import,
     get_latest_dataset,
@@ -74,7 +75,7 @@ def imports_history():
 
 
 @router.delete("/imports/{import_id}")
-def remove_import(import_id: int):
+def remove_import(import_id: int, user: dict = Depends(require_roles("admin"))):
     """Supprime un import et toutes ses lignes de données associées."""
     deleted = delete_import(import_id)
     if not deleted:
