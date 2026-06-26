@@ -138,16 +138,52 @@ def test_create_and_update_emission_factor():
 
 
 def test_recalculate_latest_import_with_current_factors():
-    from services.database import delete_import, get_latest_dataset, replace_latest_import
+    from services.database import create_emission_factor, delete_import, get_latest_dataset, replace_latest_import
+
+    create_emission_factor({
+        "name": "Ferraille test recalcul",
+        "factor_kg_co2e": 3.0,
+        "category": "Déchets",
+        "unit": "t",
+        "scope": "3 aval",
+        "source": "Test déchets",
+        "year": 2026,
+        "comment": None,
+    })
+    create_emission_factor({
+        "name": "Voiture test recalcul",
+        "factor_kg_co2e": 0.2,
+        "category": "Déplacements",
+        "unit": "km",
+        "scope": "3 amont",
+        "source": "Test déplacements",
+        "year": 2026,
+        "comment": None,
+    })
 
     summary = {
-        "total_rows": 1,
-        "dataset_count": 1,
-        "datasets": [{"key": "energie", "label": "Energie", "rows": 1}],
+        "total_rows": 3,
+        "dataset_count": 3,
+        "datasets": [
+            {"key": "energie", "label": "Energie", "rows": 1},
+            {"key": "dechets", "label": "Déchets", "rows": 1},
+            {"key": "deplacements_dt", "label": "Déplacements domicile-travail", "rows": 1},
+        ],
     }
     import_run = replace_latest_import(
         "test-recalcul.xlsx",
-        {"energie": [{"site": "Arthez", "energie": "Électricité", "quantite": 10, "kgCO2e": 999}]},
+        {
+            "energie": [{"site": "Arthez", "energie": "Électricité", "quantite": 10, "kgCO2e": 999}],
+            "dechets": [{"site": "Arthez", "nomDechet": "Ferraille test recalcul", "quantite": 2, "kgCO2e": 999}],
+            "deplacements_dt": [{
+                "site": "Arthez",
+                "moyenDeplacement": "Voiture test recalcul",
+                "distanceDomTravail": 10,
+                "nbAllerRetour": 2,
+                "nbJoursTravailles": 5,
+                "kgCO2e": 999,
+            }],
+        },
         summary,
     )
 
@@ -155,15 +191,26 @@ def test_recalculate_latest_import_with_current_factors():
         res = client.post("/api/emission-factors/recalculate-latest")
         assert res.status_code == 200
         body = res.json()
-        assert body["updated_rows"] == 1
+        assert body["updated_rows"] == 3
+        assert body["datasets"]["energie"]["updated_rows"] == 1
+        assert body["datasets"]["dechets"]["updated_rows"] == 1
+        assert body["datasets"]["deplacements_dt"]["updated_rows"] == 1
 
-        rows = get_latest_dataset("energie")
-        assert rows[0]["feKgCO2eUnite"] == 0.0599
-        assert rows[0]["kgCO2e"] == 0.6
-        assert rows[0]["sourceValues"]["kgCO2e"] == 999
-        assert rows[0]["calculation"]["method"] == "current_factor"
-        assert rows[0]["calculation"]["factorName"] == "Électricité"
-        assert rows[0]["calculation"]["calculatedBy"] == "recalculate_latest_import"
+        energy_rows = get_latest_dataset("energie")
+        assert energy_rows[0]["feKgCO2eUnite"] == 0.0599
+        assert energy_rows[0]["kgCO2e"] == 0.6
+        assert energy_rows[0]["sourceValues"]["kgCO2e"] == 999
+        assert energy_rows[0]["calculation"]["method"] == "current_factor"
+        assert energy_rows[0]["calculation"]["factorName"] == "Électricité"
+        assert energy_rows[0]["calculation"]["calculatedBy"] == "recalculate_latest_import"
+
+        waste_rows = get_latest_dataset("dechets")
+        assert waste_rows[0]["kgCO2e"] == 6.0
+        assert waste_rows[0]["calculation"]["factorName"] == "Ferraille test recalcul"
+
+        commute_rows = get_latest_dataset("deplacements_dt")
+        assert commute_rows[0]["kgCO2e"] == 20.0
+        assert commute_rows[0]["calculation"]["factorName"] == "Voiture test recalcul"
     finally:
         delete_import(import_run.id)
 

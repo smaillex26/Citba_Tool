@@ -398,8 +398,62 @@ def update_emission_factor(factor_id: int, payload: dict) -> dict | None:
         }
 
 
+RECALCULABLE_DATASETS = ["energie", "clim", "dechets", "deplacements_pro", "deplacements_dt"]
+
+
+def _to_float(value) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _match_factor(payload: dict, dataset: str, factors: dict[str, EmissionFactor]) -> EmissionFactor | None:
+    if dataset in ("energie", "clim"):
+        candidates = [payload.get("energie")]
+    elif dataset == "dechets":
+        candidates = [payload.get("nomDechet"), payload.get("modeTraitement")]
+    elif dataset in ("deplacements_pro", "deplacements_dt"):
+        candidates = [payload.get("moyenDeplacement"), payload.get("infoComplementaire")]
+    else:
+        candidates = []
+
+    normalized_candidates = [
+        str(candidate).strip().lower()
+        for candidate in candidates
+        if candidate
+    ]
+    for candidate in normalized_candidates:
+        if candidate in factors:
+            return factors[candidate]
+        match = next(
+            (
+                factor
+                for key, factor in factors.items()
+                if key and (key in candidate or candidate in key)
+            ),
+            None,
+        )
+        if match is not None:
+            return match
+    return None
+
+
+def _calculation_quantity(payload: dict, dataset: str) -> float:
+    if dataset in ("energie", "clim", "dechets"):
+        return _to_float(payload.get("quantite"))
+    if dataset == "deplacements_pro":
+        return _to_float(payload.get("kmParAn"))
+    if dataset == "deplacements_dt":
+        distance = _to_float(payload.get("distanceDomTravail"))
+        trips = _to_float(payload.get("nbAllerRetour") or 1)
+        days = _to_float(payload.get("nbJoursTravailles"))
+        return distance * trips * days
+    return 0.0
+
+
 def recalculate_latest_import_with_factors() -> dict | None:
-    """Recalcule les lignes énergie/clim du dernier import avec les FE en base."""
+    """Recalcule les lignes éligibles du dernier import avec les FE en base."""
     with get_session() as session:
         import_id = latest_import_id(session)
         if import_id is None:
@@ -411,32 +465,25 @@ def recalculate_latest_import_with_factors() -> dict | None:
         }
         rows = session.scalars(
             select(DatasetRow)
-            .where(DatasetRow.import_id == import_id, DatasetRow.dataset.in_(["energie", "clim"]))
+            .where(DatasetRow.import_id == import_id, DatasetRow.dataset.in_(RECALCULABLE_DATASETS))
             .order_by(DatasetRow.row_index)
         ).all()
 
         updated = 0
         skipped = 0
+        datasets = {
+            dataset: {"updated_rows": 0, "skipped_rows": 0}
+            for dataset in RECALCULABLE_DATASETS
+        }
         for row in rows:
             payload = dict(row.payload)
             source_values = payload.get("sourceValues") or source_values_snapshot(payload)
-            energy_name = str(payload.get("energie") or "").strip()
-            factor = factors.get(energy_name.lower())
-
-            # Les lignes Clim préfixent souvent la section avant le fluide.
-            if factor is None:
-                factor = next(
-                    (candidate for key, candidate in factors.items() if key and key in energy_name.lower()),
-                    None,
-                )
-
-            try:
-                quantity = float(payload.get("quantite") or 0)
-            except (TypeError, ValueError):
-                quantity = 0
+            factor = _match_factor(payload, row.dataset, factors)
+            quantity = _calculation_quantity(payload, row.dataset)
 
             if factor is None or quantity <= 0:
                 skipped += 1
+                datasets[row.dataset]["skipped_rows"] += 1
                 continue
 
             payload["feKgCO2eUnite"] = factor.factor_kg_co2e
@@ -460,11 +507,13 @@ def recalculate_latest_import_with_factors() -> dict | None:
             )
             row.payload = payload
             updated += 1
+            datasets[row.dataset]["updated_rows"] += 1
 
         return {
             "import_id": import_id,
             "updated_rows": updated,
             "skipped_rows": skipped,
+            "datasets": datasets,
         }
 
 
