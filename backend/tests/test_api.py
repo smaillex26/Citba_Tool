@@ -224,7 +224,11 @@ def test_upload_valid_excel(tmp_path, monkeypatch):
         assert body["summary"]["datasets"][0]["key"] == "energie"
         assert body["summary"]["recognized_sheets"][0]["sheet"] == "Energie"
         assert body["summary"]["recognized_sheets"][0]["dataset"] == "energie"
+        assert body["summary"]["recognized_sheets"][0]["validation_status"] == "ok"
+        assert body["summary"]["recognized_sheets"][0]["missing_columns"] == []
+        assert "quantite" in body["summary"]["recognized_sheets"][0]["expected_columns"]
         assert body["summary"]["ignored_sheets"][0]["sheet"] == "Année"
+        assert body["summary"]["ignored_sheets"][0]["validation_status"] == "ignored"
 
         excel_res = client.get("/api/exports/excel")
         assert excel_res.status_code == 200

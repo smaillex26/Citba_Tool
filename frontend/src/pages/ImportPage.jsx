@@ -144,7 +144,13 @@ function ImportPage() {
                     <strong>{importSummary?.recognizedSheets?.length ?? 0}</strong>
                     <p>
                       {importSummary?.recognizedSheets
-                        ?.map((item) => `${item.sheet} → ${item.label}`)
+                        ?.map((item) => {
+                          const status = item.validation_status === "ok" ? "OK" : "Partiel";
+                          const missing = item.missing_columns?.length
+                            ? `, manquantes : ${item.missing_columns.join(", ")}`
+                            : "";
+                          return `${item.sheet} → ${item.label} (${status}${missing})`;
+                        })
                         .join(", ") || "Aucun onglet reconnu"}
                     </p>
                   </article>

@@ -29,6 +29,20 @@ DATASET_LABELS = {
     "actifs_leasing": "Actifs en leasing",
 }
 
+DATASET_REQUIRED_COLUMNS = {
+    "energie": ["site", "energie", "quantite"],
+    "clim": ["site", "energie", "quantite", "kgCO2e"],
+    "achats_biens": ["site", "matiereConsommable", "quantite"],
+    "achats_services": ["site", "typePrestation", "montantEuro"],
+    "biens_immobilises": ["site", "surfaceTerre"],
+    "deplacements_pro": ["site", "moyenDeplacement"],
+    "dechets": ["site", "nomDechet", "quantite"],
+    "transport_aval": ["site", "typeTransport"],
+    "sous_traitance": ["site", "societe", "montantEuro"],
+    "deplacements_dt": ["site", "distanceDomTravail", "nbJoursTravailles"],
+    "actifs_leasing": ["site", "materielEquipement"],
+}
+
 
 @router.post("/upload")
 async def upload_file(
@@ -122,12 +136,21 @@ def _build_summary(results: dict[str, list], inspection: dict | None = None) -> 
             "label": DATASET_LABELS.get(item["dataset"], item["dataset"]),
             "sites_detected": item.get("sites_detected", []),
             "columns_recognized": item.get("columns_recognized", []),
+            "expected_columns": DATASET_REQUIRED_COLUMNS.get(item["dataset"], []),
+            "missing_columns": [
+                column
+                for column in DATASET_REQUIRED_COLUMNS.get(item["dataset"], [])
+                if column not in item.get("columns_recognized", [])
+            ],
         }
         for item in sheets
         if item.get("dataset")
     ]
+    for item in recognized_sheets:
+        item["validation_status"] = "ok" if not item["missing_columns"] else "partial"
+
     ignored_sheets = [
-        {"sheet": item["sheet"]}
+        {"sheet": item["sheet"], "validation_status": "ignored"}
         for item in sheets
         if not item.get("dataset")
     ]
