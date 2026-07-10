@@ -18,7 +18,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from services.calculator import attach_calculation_metadata, enrichir_ligne, source_values_snapshot
+from services.calculator import (
+    attach_calculation_metadata,
+    build_fe_lookup,
+    enrichir_ligne,
+    enrichir_ligne_achat,
+    source_values_snapshot,
+)
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -370,7 +376,30 @@ def _clean_record(record: dict) -> dict:
     return {key: _safe_value(value) for key, value in record.items()}
 
 
-# ── Parsing principal ─────────────────────────────────────────────────────────
+# ── Référentiel FE Excel ─────────────────────────────────────────────────────
+
+def _build_fe_lookup_from_workbook(raw_sheets: dict[str, pd.DataFrame]) -> dict[str, dict]:
+    """Lit l'onglet « Facteur d'émission » pour résoudre les libellés FE des achats."""
+    fe_rows: list[tuple] = []
+    for sheet_name, df_raw in raw_sheets.items():
+        norm = _normalize(sheet_name)
+        if "facteur" not in norm or "emission" not in norm:
+            continue
+        for _, raw_row in df_raw.iterrows():
+            values = list(raw_row)
+            if not values or values[0] is None or str(values[0]).strip() == "":
+                continue
+            fe_rows.append((
+                values[0],
+                values[1] if len(values) > 1 else None,
+                values[2] if len(values) > 2 else None,
+            ))
+        break
+    return build_fe_lookup(fe_rows)
+
+
+ACHATS_DATASETS = frozenset({"achats_biens", "sous_traitance", "achats_services"})
+
 
 def _parse_sheet_raw(
     df_raw: pd.DataFrame,
@@ -639,6 +668,7 @@ def parse_excel(path: Path, write_json: bool = False) -> dict[str, list]:
     raw_sheets: dict[str, pd.DataFrame] = pd.read_excel(
         path, sheet_name=None, engine="openpyxl", header=None
     )
+    fe_lookup = _build_fe_lookup_from_workbook(raw_sheets)
 
     if write_json:
         # Mode diagnostic : le JSON reflète uniquement le fichier parsé.
@@ -686,6 +716,9 @@ def parse_excel(path: Path, write_json: bool = False) -> dict[str, list]:
             start_id=start_id,
             forced_site=forced_site,
         )
+
+        if dataset in ACHATS_DATASETS:
+            rows = [enrichir_ligne_achat(row, fe_lookup, dataset) for row in rows]
 
         if not rows:
             continue

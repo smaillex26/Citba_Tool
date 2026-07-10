@@ -16,7 +16,6 @@ const DATASET_ROUTES = {
   transport_aval:    { label: "Transport aval & Fin de vie",   route: "/donnees/transport-aval" },
   sous_traitance:    { label: "Sous-traitance",                route: "/donnees/sous-traitance" },
   deplacements_dt:   { label: "Déplacements domicile-travail", route: "/donnees/deplacements-dt" },
-  actifs_leasing:    { label: "Actifs en leasing",             route: "/donnees/actifs-leasing" },
 };
 
 function ImportPage() {

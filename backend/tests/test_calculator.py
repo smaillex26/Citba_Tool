@@ -85,3 +85,39 @@ def test_enrichir_ligne_trace_valeur_excel():
     assert row["calculation"]["method"] == "excel_value"
     assert row["calculation"]["feKgCO2eUnite"] == 0.5
     assert row["calculation"]["calculatedBy"] == "import"
+
+
+def test_enrichir_ligne_achat_avec_lookup_excel():
+    from services.calculator import build_fe_lookup, enrichir_ligne_achat
+
+    fe_lookup = build_fe_lookup([
+        ("Métaux (aluminium, cuivre, acier, etc.)", None, "kgCO2e/EUR"),
+    ])
+    row = enrichir_ligne_achat({
+        "matiereConsommable": "Tube acier",
+        "facteurEmission": "Métaux (aluminium, cuivre, acier, etc.)",
+        "quantite": 1000,
+        "unite": "kg",
+        "montantEuro": 5000,
+        "distanceFournisseur": 200,
+        "moyenTransport": "Camion",
+    }, fe_lookup, "achats_biens")
+
+    assert row["feKgCO2eUnite"] == pytest.approx(0.98)
+    assert row["kgCO2e"] == pytest.approx(4900.0)
+    assert row["transportKgCO2e"] == pytest.approx(20.4)
+    assert row["calculation"]["method"] == "excel_factor_lookup"
+
+
+def test_enrichir_ligne_achat_sous_traitance_montant():
+    from services.calculator import build_fe_lookup, enrichir_ligne_achat
+
+    fe_lookup = build_fe_lookup([
+        ("Machines et équipements", None, "kgCO2e/EUR"),
+    ])
+    row = enrichir_ligne_achat({
+        "facteurEmission": "Machines et équipements",
+        "montantEuro": 10000,
+    }, fe_lookup, "sous_traitance")
+
+    assert row["kgCO2e"] == pytest.approx(3500.0)

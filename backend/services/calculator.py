@@ -16,8 +16,42 @@ CALCULATION_TRACE_KEYS = (
     "categorieEmission",
     "scope",
     "kgCO2e",
+    "transportKgCO2e",
+    "montantEuro",
+    "distanceFournisseur",
+    "moyenTransport",
+    "matiereConsommable",
     "pourcentage",
 )
+
+TRANSPORT_FE_TONNE_KM = {
+    "camion": 0.102,
+    "avion": 0.602,
+    "default": 0.102,
+}
+
+# Valeurs ADEME (kg CO2e / €) pour les libellés de l'onglet « Facteur d'émission »
+# lorsque la colonne FE du fichier Excel est vide.
+DEFAULT_FE_REFERENCE: dict[str, dict] = {
+    "métaux (aluminium, cuivre, acier, etc.)": {"fe": 0.98, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "produits métalliques, sauf machines et équipements": {"fe": 0.55, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "plastiques et caoutchouc": {"fe": 0.75, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "produit minéraux (ciment, verre, etc.)": {"fe": 0.45, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "produits chimiques": {"fe": 0.65, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "textile et habillement": {"fe": 0.40, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "machines et équipements": {"fe": 0.35, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "bois et article en bois": {"fe": 0.25, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "produits informatiques, électroniques et optiques": {"fe": 0.30, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "services (imprimerie, publicité, architecture et ingénierie, maintenance multi-technique des bâtiments)": {
+        "fe": 0.20, "unit": "kgCO2e/EUR", "basis": "spend",
+    },
+    "papier et carton": {"fe": 0.35, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "construction": {"fe": 0.40, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "activités de nettoyage": {"fe": 0.25, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "entreposage et services auxiliaires des transports": {"fe": 0.30, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "assurance, services bancaires, conseil et honoraires": {"fe": 0.20, "unit": "kgCO2e/EUR", "basis": "spend"},
+    "activités pour la santé humaine": {"fe": 0.25, "unit": "kgCO2e/EUR", "basis": "spend"},
+}
 
 
 def source_values_snapshot(row: dict) -> dict:
@@ -275,6 +309,167 @@ def calcul_kg_co2e(energie: str, quantite: float) -> float | None:
     if ref is None:
         return None
     return round(quantite * ref["fe"], 4)
+
+
+def _normalize_fe_label(text) -> str:
+    return re.sub(r"\s+", " ", str(text or "").strip().lower())
+
+
+def _infer_fe_basis(unit: str | None) -> str:
+    normalized = _normalize_fe_label(unit)
+    if not normalized or "eur" in normalized:
+        return "spend"
+    if "tonne" in normalized:
+        return "mass_tonne"
+    if "kgco2/kg" in normalized.replace(" ", "") or normalized.endswith("/kg"):
+        return "mass_kg"
+    if any(token in normalized for token in ("/m3", "/l", "/kwh", "m3", "kwh")):
+        return "quantity"
+    return "spend"
+
+
+def build_fe_lookup(rows: list[tuple]) -> dict[str, dict]:
+    """
+    Construit un index {libellé normalisé: {fe, unit, basis, label}}
+    à partir de l'onglet « Facteur d'émission » du fichier Excel.
+    """
+    lookup = {
+        key: dict(value)
+        for key, value in DEFAULT_FE_REFERENCE.items()
+    }
+
+    for label, fe_value, unit in rows:
+        if label is None or str(label).strip() == "":
+            continue
+        key = _normalize_fe_label(label)
+        entry = {
+            "label": str(label).strip(),
+            "unit": str(unit or "").strip(),
+            "basis": _infer_fe_basis(unit),
+        }
+        fe = _to_float_safe(fe_value)
+        if fe > 0:
+            entry["fe"] = fe
+        elif key in lookup:
+            entry["fe"] = lookup[key]["fe"]
+        else:
+            continue
+        lookup[key] = entry
+
+    return lookup
+
+
+def lookup_fe_factor(label, fe_lookup: dict[str, dict]) -> dict | None:
+    if not label:
+        return None
+    key = _normalize_fe_label(label)
+    if key in fe_lookup:
+        return fe_lookup[key]
+
+    partial = next(
+        (
+            factor
+            for factor_key, factor in fe_lookup.items()
+            if factor_key and (factor_key in key or key in factor_key)
+        ),
+        None,
+    )
+    return partial
+
+
+def _quantity_in_tonnes(quantite: float, unite) -> float:
+    normalized = _normalize_fe_label(unite)
+    if quantite <= 0:
+        return 0.0
+    if normalized == "kg":
+        return quantite / 1000
+    if normalized in {"t", "tonne", "tonnes"} or "tonne" in normalized:
+        return quantite
+    return 0.0
+
+
+def calcul_transport_kg(row: dict) -> float:
+    tonnes = _quantity_in_tonnes(_to_float_safe(row.get("quantite")), row.get("unite"))
+    distance = _to_float_safe(row.get("distanceFournisseur"))
+    if tonnes <= 0 or distance <= 0:
+        return 0.0
+    mode = _normalize_fe_label(row.get("moyenTransport"))
+    fe_tkm = TRANSPORT_FE_TONNE_KM["avion"] if "avion" in mode else TRANSPORT_FE_TONNE_KM["default"]
+    return tonnes * distance * fe_tkm
+
+
+def calcul_production_kg(row: dict, factor: dict | None) -> float:
+    if factor is None:
+        return 0.0
+
+    fe = _to_float_safe(factor.get("fe"))
+    if fe <= 0:
+        return 0.0
+
+    quantite = _to_float_safe(row.get("quantite"))
+    montant = _to_float_safe(row.get("montantEuro"))
+    basis = factor.get("basis", "spend")
+
+    if basis == "mass_tonne" and quantite > 0:
+        return _quantity_in_tonnes(quantite, row.get("unite")) * fe
+    if basis == "mass_kg" and quantite > 0:
+        normalized = _normalize_fe_label(row.get("unite"))
+        kg = quantite if normalized == "kg" else quantite * 1000
+        return kg * fe
+    if basis == "quantity" and quantite > 0:
+        return quantite * fe
+    if montant > 0:
+        return montant * fe
+    if quantite > 0:
+        return quantite * fe
+    return 0.0
+
+
+def enrichir_ligne_achat(row: dict, fe_lookup: dict[str, dict], dataset: str) -> dict:
+    """Calcule kgCO2e et transport à partir du libellé FE Excel et des quantités."""
+    source_values = source_values_snapshot(row)
+    existing_kg = _to_float_safe(row.get("kgCO2e"))
+    if existing_kg > 0:
+        attach_calculation_metadata(
+            row,
+            source_values=source_values,
+            kg_co2e=existing_kg,
+            fe_kg_co2e_unite=row.get("feKgCO2eUnite"),
+            factor_name=row.get("facteurEmission"),
+            factor_source=row.get("facteurEmission"),
+            factor_category=row.get("categorieEmission"),
+            factor_scope=row.get("scope"),
+            factor_unit=row.get("unite"),
+            method="excel_value",
+            calculated_by="import",
+        )
+        return row
+
+    factor = lookup_fe_factor(row.get("facteurEmission"), fe_lookup)
+    production_kg = calcul_production_kg(row, factor)
+    transport_kg = calcul_transport_kg(row) if dataset == "achats_biens" else 0.0
+
+    if factor is not None:
+        row["feKgCO2eUnite"] = factor.get("fe")
+
+    row["kgCO2e"] = round(production_kg, 2)
+    if transport_kg > 0:
+        row["transportKgCO2e"] = round(transport_kg, 2)
+
+    attach_calculation_metadata(
+        row,
+        source_values=source_values,
+        kg_co2e=row["kgCO2e"],
+        fe_kg_co2e_unite=row.get("feKgCO2eUnite"),
+        factor_name=factor.get("label") if factor else row.get("facteurEmission"),
+        factor_source=row.get("facteurEmission"),
+        factor_category=row.get("categorieEmission"),
+        factor_scope=row.get("scope"),
+        factor_unit=factor.get("unit") if factor else row.get("unite"),
+        method="excel_factor_lookup" if factor else "unresolved",
+        calculated_by="import",
+    )
+    return row
 
 
 def _to_float_safe(v) -> float:

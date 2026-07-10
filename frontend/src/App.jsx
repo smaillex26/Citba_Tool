@@ -7,7 +7,6 @@ import LoginPage from "./pages/LoginPage.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
 import ImportHistoryPage from "./pages/ImportHistoryPage.jsx";
 import DeplacementsDTPage from "./pages/DeplacementsDTPage.jsx";
-import ActifsLeasingPage from "./pages/ActifsLeasingPage.jsx";
 import SousTraitancePage from "./pages/SousTraitancePage.jsx";
 import EnergieProcessPage from "./pages/EnergieProcessPage.jsx";
 import ClimPage from "./pages/ClimPage.jsx";
@@ -20,6 +19,7 @@ import DechetsPage from "./pages/DechetsPage.jsx";
 import TransportAvalPage from "./pages/TransportAvalPage.jsx";
 import EmissionFactorsPage from "./pages/EmissionFactorsPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
+import PlanActionPage from "./pages/PlanActionPage.jsx";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -55,7 +55,6 @@ function App() {
             <Route path="/import" element={<ImportPage />} />
             <Route path="/imports" element={<ImportHistoryPage />} />
             <Route path="/donnees/deplacements-dt" element={<DeplacementsDTPage />} />
-            <Route path="/donnees/actifs-leasing" element={<ActifsLeasingPage />} />
             <Route path="/donnees/sous-traitance" element={<SousTraitancePage />} />
             <Route path="/donnees/energie-process" element={<EnergieProcessPage />} />
             <Route path="/donnees/clim" element={<ClimPage />} />
@@ -66,6 +65,7 @@ function App() {
             <Route path="/donnees/dechets" element={<DechetsPage />} />
             <Route path="/donnees/transport-aval" element={<TransportAvalPage />} />
             <Route path="/dashboard" element={<AffairesPage />} />
+            <Route path="/plan-action" element={<PlanActionPage />} />
             <Route path="/facteurs-emission" element={<EmissionFactorsPage />} />
             <Route path="/parametres" element={<SettingsPage />} />
           </Routes>

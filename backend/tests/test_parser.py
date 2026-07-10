@@ -368,3 +368,42 @@ def test_parse_tous_les_onglets_metier_importants(tmp_path, monkeypatch):
     assert results["achats_biens"][0]["site"] == "Pontonx"
     assert results["clim"][0]["scope"] == "1"
     assert results["actifs_leasing"][0]["materielEquipement"] == "Chariot élévateur"
+
+
+def test_parse_achats_biens_calcule_kgco2e_depuis_facteur_excel(tmp_path, monkeypatch):
+    """Les achats doivent résoudre le libellé FE Excel et calculer les kgCO2e."""
+    from openpyxl import Workbook
+
+    monkeypatch.setattr("services.parser.DATA_DIR", tmp_path)
+
+    wb = Workbook()
+    ws_fe = wb.active
+    ws_fe.title = "Facteur d'émission"
+    ws_fe.append(["Libellé", "FE", "Unité"])
+    ws_fe.append(["Métaux (aluminium, cuivre, acier, etc.)", "", "kgCO2e/EUR"])
+
+    ws = wb.create_sheet("Intrants - Pontonx")
+    ws.append(["PONTONX"])
+    ws.append(["Intrants"])
+    ws.append([])
+    ws.append([
+        "Matières premières / Consommables",
+        "Facteur d'émission",
+        "Famille",
+        "Distance moyenne entre le fournisseur et le site de réception de la matière première",
+        "Moyen de transport",
+        "Quantité",
+        "Unité",
+        "Montant",
+    ])
+    ws.append(["Tube acier", "Métaux (aluminium, cuivre, acier, etc.)", "TUBE", 100, "Camion", 1000, "kg", 5000])
+
+    xlsx = tmp_path / "achats_fe.xlsx"
+    wb.save(xlsx)
+
+    results = parse_excel(xlsx)
+    row = results["achats_biens"][0]
+    assert row["site"] == "Pontonx"
+    assert row["feKgCO2eUnite"] == pytest.approx(0.98)
+    assert row["kgCO2e"] == pytest.approx(4900.0)
+    assert row["transportKgCO2e"] == pytest.approx(10.2)

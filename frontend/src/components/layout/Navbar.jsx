@@ -9,7 +9,6 @@ const mainLinks = [
 
 const dataPages = [
   { to: "/donnees/deplacements-dt", label: "Déplacements domicile-travail" },
-  { to: "/donnees/actifs-leasing", label: "Actifs en leasing" },
   { to: "/donnees/sous-traitance", label: "Sous-traitance" },
   { to: "/donnees/energie-process", label: "Énergie et Process" },
   { to: "/donnees/clim", label: "Clim" },
@@ -23,6 +22,7 @@ const dataPages = [
 
 const endLinks = [
   { to: "/dashboard", label: "Tableau de bord" },
+  { to: "/plan-action", label: "Plan d'action" },
   { to: "/facteurs-emission", label: "Facteurs d'émission" },
   { to: "/parametres", label: "Paramètres" },
 ];

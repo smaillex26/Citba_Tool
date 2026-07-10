@@ -129,7 +129,7 @@ export async function deleteImport(importId) {
  *
  * @param {"energie"|"clim"|"achats_biens"|"achats_services"|"biens_immobilises"
  *         |"deplacements_pro"|"dechets"|"transport_aval"
- *         |"sous_traitance"|"deplacements_dt"|"actifs_leasing"} dataset
+ *         |"sous_traitance"|"deplacements_dt"} dataset
  */
 export async function getDataset(dataset) {
   try {
